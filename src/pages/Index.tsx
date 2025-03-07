@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Package, Shield, CloudCheck, Zap } from 'lucide-react';
+import { ArrowRight, Package, Shield, Cloud, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -226,7 +225,7 @@ const Index = () => {
                   description: 'Safe and secure payment processing for all your software purchases.'
                 },
                 {
-                  icon: <CloudCheck className="h-10 w-10 text-primary" />,
+                  icon: <Cloud className="h-10 w-10 text-primary" />,
                   title: 'Cloud Storage',
                   description: 'Access your purchased software anytime from our secure cloud storage.'
                 },
