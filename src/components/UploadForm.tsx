@@ -96,7 +96,6 @@ const UploadForm = () => {
     for (let i = 0; i < uploadedFiles.length; i++) {
       const file = uploadedFiles[i];
       
-      // Check file size
       if (file.size > MAX_FILE_SIZE) {
         form.setError(field, { 
           message: `File ${file.name} exceeds the maximum size of 50MB` 
@@ -104,7 +103,6 @@ const UploadForm = () => {
         continue;
       }
       
-      // For images, only allow image files
       if (field === 'images' && !file.type.startsWith('image/')) {
         form.setError(field, { 
           message: `File ${file.name} is not an image` 
@@ -112,7 +110,6 @@ const UploadForm = () => {
         continue;
       }
       
-      // Check if we've reached the limit for images
       if (field === 'images' && newFiles.length >= 5) {
         form.setError(field, { message: 'Maximum 5 images allowed' });
         break;
@@ -150,14 +147,20 @@ const UploadForm = () => {
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     
-    // Simulate API call
     console.log('Form values:', values);
     
     setTimeout(() => {
       setIsSubmitting(false);
-      // Show success message or redirect
       alert('Software successfully uploaded! It will be reviewed before being published.');
     }, 2000);
+  };
+  
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
   
   return (
@@ -338,13 +341,17 @@ const UploadForm = () => {
                             multiple
                             className="hidden"
                             id="software-upload"
+                            ref={fileInputRef}
                             onChange={(e) => handleFileUpload(e, 'files')}
                           />
-                          <Label htmlFor="software-upload" className="cursor-pointer">
-                            <Button type="button" variant="outline" className="rounded-full">
-                              Browse Files
-                            </Button>
-                          </Label>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            className="rounded-full"
+                            onClick={triggerFileInput}
+                          >
+                            Browse Files
+                          </Button>
                         </div>
                       </div>
                     </FormControl>
