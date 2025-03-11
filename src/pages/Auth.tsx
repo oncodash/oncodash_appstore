@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,17 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Mail, Lock, User } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab as 'login' | 'register');
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { login, register, isLoading } = useAuth();
   const navigate = useNavigate();
 
   // Form states
@@ -26,51 +24,19 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
     try {
-      // Simulate login authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Login successful",
-        description: "You are now signed in",
-      });
-      
-      navigate('/');
+      await login(email, password);
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Login error:', error);
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
     try {
-      // Simulate registration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created",
-      });
-      
-      setTab('login');
+      await register(name, email, password);
     } catch (error) {
-      toast({
-        title: "Registration failed",
-        description: "Please try again with different information",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Registration error:', error);
     }
   };
 

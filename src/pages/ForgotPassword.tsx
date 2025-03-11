@@ -1,44 +1,28 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/hooks/useAuth';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { toast } = useToast();
+  const { forgotPassword, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
     try {
-      // Simulate password reset request
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await forgotPassword(email);
       setIsSubmitted(true);
-      
-      toast({
-        title: "Reset link sent",
-        description: "Check your email for password reset instructions",
-      });
     } catch (error) {
-      toast({
-        title: "Request failed",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Forgot password error:', error);
     }
   };
 
