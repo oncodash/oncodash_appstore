@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Upload, X, Plus, ArrowRight } from 'lucide-react';
+import { Upload, X, Plus, ArrowRight, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Package } from 'lucide-react';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -55,7 +54,7 @@ const UploadForm = () => {
   const [tagInput, setTagInput] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -68,70 +67,67 @@ const UploadForm = () => {
       images: [],
     },
   });
-  
+
   const tags = form.watch('tags');
   const files = form.watch('files');
   const images = form.watch('images');
-  
+
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 10) {
       form.setValue('tags', [...tags, tagInput.trim()]);
       setTagInput('');
     }
   };
-  
+
   const removeTag = (index: number) => {
     const newTags = [...tags];
     newTags.splice(index, 1);
     form.setValue('tags', newTags);
   };
-  
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'files' | 'images') => {
     const uploadedFiles = e.target.files;
     if (!uploadedFiles) return;
-    
+
     const currentFiles = form.getValues(field);
     const newFiles = [...currentFiles];
-    
+
     for (let i = 0; i < uploadedFiles.length; i++) {
       const file = uploadedFiles[i];
-      
-      // Check file size
+
       if (file.size > MAX_FILE_SIZE) {
-        form.setError(field, { 
-          message: `File ${file.name} exceeds the maximum size of 50MB` 
+        form.setError(field, {
+          message: `File ${file.name} exceeds the maximum size of 50MB`
         });
         continue;
       }
-      
-      // For images, only allow image files
+
       if (field === 'images' && !file.type.startsWith('image/')) {
-        form.setError(field, { 
-          message: `File ${file.name} is not an image` 
+        form.setError(field, {
+          message: `File ${file.name} is not an image`
         });
         continue;
       }
-      
-      // Check if we've reached the limit for images
+
       if (field === 'images' && newFiles.length >= 5) {
         form.setError(field, { message: 'Maximum 5 images allowed' });
         break;
       }
-      
+
       newFiles.push(file);
     }
-    
+
     form.setValue(field, newFiles);
     form.clearErrors(field);
   };
-  
+
   const removeFile = (index: number, field: 'files' | 'images') => {
     const currentFiles = form.getValues(field);
     const newFiles = [...currentFiles];
     newFiles.splice(index, 1);
     form.setValue(field, newFiles);
   };
-  
+
   const nextStep = async () => {
     if (currentStep === 1) {
       const result = await form.trigger(['title', 'description', 'category', 'price', 'tags']);
@@ -140,26 +136,32 @@ const UploadForm = () => {
       }
     }
   };
-  
+
   const prevStep = () => {
     if (currentStep === 2) {
       setCurrentStep(1);
     }
   };
-  
+
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    
-    // Simulate API call
+
     console.log('Form values:', values);
-    
+
     setTimeout(() => {
       setIsSubmitting(false);
-      // Show success message or redirect
       alert('Software successfully uploaded! It will be reviewed before being published.');
     }, 2000);
   };
-  
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto">
       <Form {...form}>
@@ -182,7 +184,7 @@ const UploadForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="description"
@@ -190,10 +192,10 @@ const UploadForm = () => {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Describe what your software does, its key features, and benefits" 
+                      <Textarea
+                        placeholder="Describe what your software does, its key features, and benefits"
                         className="min-h-[120px]"
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormDescription>
@@ -203,15 +205,15 @@ const UploadForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -234,7 +236,7 @@ const UploadForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="price"
@@ -242,11 +244,11 @@ const UploadForm = () => {
                   <FormItem>
                     <FormLabel>Price (USD)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0" 
+                      <Input
+                        type="number"
+                        min="0"
                         step="0.01"
-                        placeholder="0.00" 
+                        placeholder="0.00"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
@@ -258,7 +260,7 @@ const UploadForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="tags"
@@ -277,8 +279,8 @@ const UploadForm = () => {
                           }
                         }}
                       />
-                      <Button 
-                        type="button" 
+                      <Button
+                        type="button"
                         variant="secondary"
                         className="ml-2"
                         onClick={addTag}
@@ -307,7 +309,7 @@ const UploadForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <div className="flex justify-end">
                 <Button type="button" onClick={nextStep} className="rounded-full">
                   Next Step
@@ -316,7 +318,7 @@ const UploadForm = () => {
               </div>
             </div>
           )}
-          
+
           {currentStep === 2 && (
             <div className="space-y-8 animate-fade-in">
               <FormField
@@ -338,13 +340,17 @@ const UploadForm = () => {
                             multiple
                             className="hidden"
                             id="software-upload"
+                            ref={fileInputRef}
                             onChange={(e) => handleFileUpload(e, 'files')}
                           />
-                          <Label htmlFor="software-upload" className="cursor-pointer">
-                            <Button type="button" variant="outline" className="rounded-full">
-                              Browse Files
-                            </Button>
-                          </Label>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="rounded-full"
+                            onClick={triggerFileInput}
+                          >
+                            Browse Files
+                          </Button>
                         </div>
                       </div>
                     </FormControl>
@@ -380,7 +386,7 @@ const UploadForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="images"
@@ -393,11 +399,11 @@ const UploadForm = () => {
                           if (index < images.length) {
                             const file = images[index] as File;
                             const imageUrl = URL.createObjectURL(file);
-                            
+
                             return (
                               <div key={index} className="relative aspect-video bg-secondary/50 rounded-lg overflow-hidden">
-                                <img 
-                                  src={imageUrl} 
+                                <img
+                                  src={imageUrl}
                                   alt={`Preview ${index}`}
                                   className="w-full h-full object-cover"
                                 />
@@ -438,18 +444,18 @@ const UploadForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <div className="flex justify-between">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={prevStep}
                   className="rounded-full"
                 >
                   Back
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="rounded-full"
                   disabled={isSubmitting}
                 >
