@@ -1,116 +1,93 @@
 
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import CORS
 import jwt
-import datetime
+from datetime import datetime, timedelta
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
 
+# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
 # Configure SQLite database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///softswap.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your_secret_key_here'  # Change this in production
+app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
 
-# Initialize SQLAlchemy
+# Initialize database
 db = SQLAlchemy(app)
 
-# User model
+# Define User model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(20), default='user')
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'email': self.email,
-            'role': self.role,
-            'created_at': self.created_at.isoformat()
-        }
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    products = db.relationship('Product', backref='seller', lazy=True)
 
-# Product model
+# Define Product model
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    images = db.Column(db.Text, nullable=False)  # Stored as JSON string
-    category = db.Column(db.String(100), nullable=False)
-    tags = db.Column(db.Text, nullable=False)  # Stored as JSON string
+    image_url = db.Column(db.String(255))
+    category = db.Column(db.String(50))
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    rating = db.Column(db.Float, default=0.0)
-    review_count = db.Column(db.Integer, default=0)
-    featured = db.Column(db.Boolean, default=False)
-    download_count = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'description': self.description,
-            'price': self.price,
-            'images': self.images,  # Frontend will need to parse this JSON
-            'category': self.category,
-            'tags': self.tags,  # Frontend will need to parse this JSON
-            'seller': {
-                'id': self.seller_id,
-                'name': User.query.get(self.seller_id).name,
-                'avatar': None  # Add avatar logic if implemented
-            },
-            'rating': self.rating,
-            'reviewCount': self.review_count,
-            'featured': self.featured,
-            'downloadCount': self.download_count,
-            'createdAt': self.created_at.isoformat(),
-            'updatedAt': self.updated_at.isoformat()
-        }
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# Create tables
+# Create database tables
 with app.app_context():
     db.create_all()
 
-# Authentication middleware
+# Helper functions
+def generate_token(user_id):
+    payload = {
+        'exp': datetime.utcnow() + timedelta(days=1),
+        'iat': datetime.utcnow(),
+        'sub': user_id
+    }
+    return jwt.encode(
+        payload,
+        app.config.get('SECRET_KEY'),
+        algorithm='HS256'
+    )
+
 def token_required(f):
-    def decorator(*args, **kwargs):
+    def decorated(*args, **kwargs):
         token = None
         if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].split(' ')[1]
+            auth_header = request.headers['Authorization']
+            token = auth_header.split(' ')[1] if len(auth_header.split(' ')) > 1 else None
         
         if not token:
-            return jsonify({'message': 'Token is missing'}), 401
+            return jsonify({'message': 'Token is missing!'}), 401
         
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            current_user = User.query.filter_by(id=data['user_id']).first()
+            data = jwt.decode(token, app.config.get('SECRET_KEY'), algorithms=['HS256'])
+            current_user = User.query.filter_by(id=data['sub']).first()
         except:
-            return jsonify({'message': 'Token is invalid'}), 401
+            return jsonify({'message': 'Token is invalid!'}), 401
             
         return f(current_user, *args, **kwargs)
     
-    decorator.__name__ = f.__name__
-    return decorator
+    decorated.__name__ = f.__name__
+    return decorated
 
-# Authentication routes
+# Auth Routes
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json()
     
     # Check if user already exists
     if User.query.filter_by(email=data['email']).first():
-        return jsonify({'message': 'User already exists'}), 400
+        return jsonify({'message': 'User already exists'}), 409
     
     # Create new user
-    hashed_password = generate_password_hash(data['password'], method='sha256')
+    hashed_password = generate_password_hash(data['password'])
     new_user = User(
         name=data['name'],
         email=data['email'],
@@ -120,7 +97,18 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     
-    return jsonify({'message': 'User created successfully'}), 201
+    # Generate token
+    token = generate_token(new_user.id)
+    
+    return jsonify({
+        'message': 'User created successfully',
+        'token': token,
+        'user': {
+            'id': new_user.id,
+            'name': new_user.name,
+            'email': new_user.email
+        }
+    }), 201
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
@@ -131,33 +119,75 @@ def login():
     if not user or not check_password_hash(user.password, data['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
     
-    # Generate JWT token
-    token = jwt.encode({
-        'user_id': user.id,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
-    }, app.config['SECRET_KEY'], algorithm="HS256")
+    token = generate_token(user.id)
     
     return jsonify({
+        'message': 'Login successful',
         'token': token,
-        'user': user.to_dict()
+        'user': {
+            'id': user.id,
+            'name': user.name,
+            'email': user.email
+        }
     }), 200
 
 @app.route('/api/auth/forgot-password', methods=['POST'])
 def forgot_password():
-    # In a real application, you'd send an email with a reset link
-    # For this demo, we'll just return a success message
-    return jsonify({'message': 'Password reset instructions sent'}), 200
+    data = request.get_json()
+    
+    user = User.query.filter_by(email=data['email']).first()
+    
+    if not user:
+        # Don't reveal whether user exists or not for security reasons
+        return jsonify({'message': 'Password reset instructions sent if email exists'}), 200
+    
+    # In a real app, you would send a password reset email here
+    # For this example, we'll just return a success message
+    
+    return jsonify({'message': 'Password reset instructions sent if email exists'}), 200
 
-# Product routes
+# Product Routes
 @app.route('/api/products', methods=['GET'])
 def get_products():
     products = Product.query.all()
-    return jsonify([product.to_dict() for product in products]), 200
+    
+    result = []
+    for product in products:
+        seller = User.query.get(product.seller_id)
+        result.append({
+            'id': product.id,
+            'title': product.title,
+            'description': product.description,
+            'price': product.price,
+            'imageUrl': product.image_url,
+            'category': product.category,
+            'seller': {
+                'id': seller.id,
+                'name': seller.name
+            },
+            'createdAt': product.created_at.isoformat()
+        })
+    
+    return jsonify(result), 200
 
-@app.route('/api/products/<int:product_id>', methods=['GET'])
-def get_product(product_id):
-    product = Product.query.get_or_404(product_id)
-    return jsonify(product.to_dict()), 200
+@app.route('/api/products/<int:id>', methods=['GET'])
+def get_product(id):
+    product = Product.query.get_or_404(id)
+    seller = User.query.get(product.seller_id)
+    
+    return jsonify({
+        'id': product.id,
+        'title': product.title,
+        'description': product.description,
+        'price': product.price,
+        'imageUrl': product.image_url,
+        'category': product.category,
+        'seller': {
+            'id': seller.id,
+            'name': seller.name
+        },
+        'createdAt': product.created_at.isoformat()
+    }), 200
 
 @app.route('/api/products', methods=['POST'])
 @token_required
@@ -168,51 +198,80 @@ def create_product(current_user):
         title=data['title'],
         description=data['description'],
         price=data['price'],
-        images=data['images'],  # Should be a JSON string
-        category=data['category'],
-        tags=data['tags'],  # Should be a JSON string
+        image_url=data.get('imageUrl', ''),
+        category=data.get('category', ''),
         seller_id=current_user.id
     )
     
     db.session.add(new_product)
     db.session.commit()
     
-    return jsonify(new_product.to_dict()), 201
+    return jsonify({
+        'message': 'Product created successfully',
+        'product': {
+            'id': new_product.id,
+            'title': new_product.title,
+            'description': new_product.description,
+            'price': new_product.price,
+            'imageUrl': new_product.image_url,
+            'category': new_product.category,
+            'seller': {
+                'id': current_user.id,
+                'name': current_user.name
+            },
+            'createdAt': new_product.created_at.isoformat()
+        }
+    }), 201
 
-@app.route('/api/products/<int:product_id>', methods=['PUT'])
+@app.route('/api/products/<int:id>', methods=['PUT'])
 @token_required
-def update_product(current_user, product_id):
-    product = Product.query.get_or_404(product_id)
+def update_product(current_user, id):
+    product = Product.query.get_or_404(id)
     
-    # Check if user is the seller
-    if product.seller_id != current_user.id and current_user.role != 'admin':
+    # Check if the current user is the owner of the product
+    if product.seller_id != current_user.id:
         return jsonify({'message': 'Unauthorized'}), 403
     
     data = request.get_json()
     
-    # Update product fields
-    for key, value in data.items():
-        if hasattr(product, key):
-            setattr(product, key, value)
+    product.title = data.get('title', product.title)
+    product.description = data.get('description', product.description)
+    product.price = data.get('price', product.price)
+    product.image_url = data.get('imageUrl', product.image_url)
+    product.category = data.get('category', product.category)
     
     db.session.commit()
     
-    return jsonify(product.to_dict()), 200
+    return jsonify({
+        'message': 'Product updated successfully',
+        'product': {
+            'id': product.id,
+            'title': product.title,
+            'description': product.description,
+            'price': product.price,
+            'imageUrl': product.image_url,
+            'category': product.category,
+            'seller': {
+                'id': current_user.id,
+                'name': current_user.name
+            },
+            'createdAt': product.created_at.isoformat()
+        }
+    }), 200
 
-@app.route('/api/products/<int:product_id>', methods=['DELETE'])
+@app.route('/api/products/<int:id>', methods=['DELETE'])
 @token_required
-def delete_product(current_user, product_id):
-    product = Product.query.get_or_404(product_id)
+def delete_product(current_user, id):
+    product = Product.query.get_or_404(id)
     
-    # Check if user is the seller
-    if product.seller_id != current_user.id and current_user.role != 'admin':
+    # Check if the current user is the owner of the product
+    if product.seller_id != current_user.id:
         return jsonify({'message': 'Unauthorized'}), 403
     
     db.session.delete(product)
     db.session.commit()
     
-    return jsonify({'message': 'Product deleted'}), 200
+    return jsonify({'message': 'Product deleted successfully'}), 200
 
-# Run the app
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
