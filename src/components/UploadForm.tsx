@@ -8,6 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import axios from 'axios';
+import { useAuth } from '@/hooks/useAuth'; // Assuming you have an auth hook
+
+
 import {
   Form,
   FormControl,
@@ -54,6 +58,9 @@ const UploadForm = () => {
   const [tagInput, setTagInput] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user, token } = useAuth();
+
+  console.log('Auth state:', { user, token }); // Add this line for debugging
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -143,16 +150,70 @@ const UploadForm = () => {
     }
   };
 
-  const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
+const onSubmit = async (values: FormValues) => {
+  setIsSubmitting(true);
 
-    console.log('Form values:', values);
+  console.log('Token at submission:', token); // For debugging
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert('Software successfully uploaded! It will be reviewed before being published.');
-    }, 2000);
-  };
+  if (!token) {
+    console.error('No authentication token available');
+    alert('You must be logged in to upload software.');
+    setIsSubmitting(false);
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('title', values.title);
+    formData.append('description', values.description);
+    formData.append('category', values.category);
+    formData.append('price', values.price.toString());
+
+    // Append tags
+    values.tags.forEach((tag, index) => {
+      formData.append(`tags[${index}]`, tag);
+    });
+
+    // Append files
+    values.files.forEach((file, index) => {
+      formData.append(`files`, file);
+    });
+
+    // Append images
+    values.images.forEach((image, index) => {
+      formData.append(`images`, image);
+    });
+
+    console.log('Sending data:', Object.fromEntries(formData));
+
+    const response = await axios.post('http://localhost:5000/api/products', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    console.log('Product created:', response.data);
+    alert('Software successfully uploaded! It will be reviewed before being published.');
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        alert('Authentication failed. Please try logging in again.');
+      } else if (error.response?.status === 415) {
+        console.error('Unsupported Media Type:', error.response.data);
+        alert('Error: Unsupported Media Type. Please check your file formats.');
+      } else {
+        alert(`Error: ${error.response?.data?.message || error.message}`);
+      }
+    } else {
+      console.error('Error creating product:', error);
+      alert('An unexpected error occurred while uploading the software. Please try again.');
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -163,7 +224,9 @@ const UploadForm = () => {
   };
 
   return (
+
     <div className="w-full max-w-3xl mx-auto">
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {currentStep === 1 && (

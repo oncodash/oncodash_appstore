@@ -24,8 +24,7 @@ import Footer from '@/components/Footer';
 import ProductGrid from '@/components/ProductGrid';
 import { Product } from '@/types';
 
-// Import mock data
-import { mockProducts } from '@/mockData';
+
 
 const categories = [
   { value: 'all', label: 'All Categories' },
@@ -70,22 +69,35 @@ const Marketplace = () => {
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   
-  // Load products
+  // Load products from the API
   useEffect(() => {
-    // Simulate data loading
-    setTimeout(() => {
-      setProducts(mockProducts);
-      setFilteredProducts(mockProducts);
-      setLoaded(true);
-    }, 500);
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        if (!response.ok) {
+          const text = await response.text();
+          console.error('Server response:', text);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setProducts(data);
+        setFilteredProducts(data);
+        setLoaded(true);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        // Handle error (e.g., show error message to user)
+      }
+    };
+
+    fetchProducts();
   }, []);
-  
+
   // Apply filters
   useEffect(() => {
     if (products.length === 0) return;
-    
+
     let result = [...products];
-    
+
     // Apply search filter
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
@@ -96,12 +108,12 @@ const Marketplace = () => {
           product.tags.some((tag) => tag.toLowerCase().includes(query))
       );
     }
-    
+
     // Apply category filter
     if (selectedCategory !== 'all') {
       result = result.filter((product) => product.category === selectedCategory);
     }
-    
+
     // Apply price range filter
     if (selectedPriceRange !== 'all') {
       switch (selectedPriceRange) {
@@ -122,23 +134,23 @@ const Marketplace = () => {
           break;
       }
     }
-    
+
     // Apply tag filters
     if (activeTags.length > 0) {
       result = result.filter((product) =>
         activeTags.some((tag) => product.tags.includes(tag))
       );
     }
-    
+
     // Apply sorting
     result = sortProducts(result, sortBy);
-    
+
     setFilteredProducts(result);
   }, [products, searchQuery, selectedCategory, selectedPriceRange, activeTags, sortBy]);
-  
+
   const sortProducts = (productsToSort: Product[], sortOption: SortOption): Product[] => {
     const sorted = [...productsToSort];
-    
+
     switch (sortOption) {
       case 'featured':
         return sorted.sort((a, b) => (a.featured === b.featured ? 0 : a.featured ? -1 : 1));
@@ -192,7 +204,7 @@ const Marketplace = () => {
               animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 20 }}
               transition={{ duration: 0.5 }}
             >
-              Software Marketplace
+              Applications
             </motion.h1>
             <motion.p 
               className="text-muted-foreground max-w-2xl mx-auto"
@@ -200,7 +212,7 @@ const Marketplace = () => {
               animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              Discover high-quality software packages from our community of developers.
+              Discover software from Oncodash community of developers.
             </motion.p>
           </div>
           

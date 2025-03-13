@@ -31,23 +31,22 @@ const Navbar = () => {
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
-          <Package className="h-8 w-8 text-primary" />
-          <span className="font-bold text-xl tracking-tight">SoftSwap</span>
+          {/*<Package className="h-8 w-8 text-primary" />*/}
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex ml-40 items-center space-x-8">
           <Link to="/marketplace" className="text-sm font-medium hover:text-primary transition-colors">
-            Marketplace
+            Applications
           </Link>
           <Link to="/categories" className="text-sm font-medium hover:text-primary transition-colors">
             Categories
           </Link>
           <Link to="/top-sellers" className="text-sm font-medium hover:text-primary transition-colors">
-            Top Sellers
+            Top Contributors
           </Link>
           <Link to="/upload" className="text-sm font-medium hover:text-primary transition-colors">
-            Sell Software
+            Share Software
           </Link>
         </nav>
         

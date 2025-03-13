@@ -30,7 +30,7 @@ const Terms = () => {
             
             <h2>1. Introduction</h2>
             <p>
-              Welcome to SoftSwap. By using our services, you agree to these terms. Please read them carefully.
+              Welcome to Oncodash App Store. By using our services, you agree to these terms. Please read them carefully.
             </p>
             
             <h2>2. Using Our Services</h2>
@@ -40,23 +40,23 @@ const Terms = () => {
               if you do not comply with our terms or policies or if we are investigating suspected misconduct.
             </p>
             
-            <h2>3. Your SoftSwap Account</h2>
+            <h2>3. Your Oncodash App Store Account</h2>
             <p>
-              You need a SoftSwap Account to use most of our services. When you create an account, you provide us with personal information.
-              You are responsible for the activity that happens on or through your SoftSwap Account. 
+              You need a Oncodash App Store Account to use most of our services. When you create an account, you provide us with personal information.
+              You are responsible for the activity that happens on or through your Oncodash App Store Account. 
               Safeguard your password. If you learn of any unauthorized use of your password or account, please contact support immediately.
             </p>
             
             <h2>4. Privacy and Copyright Protection</h2>
             <p>
               Our privacy policies explain how we treat your personal data and protect your privacy when you use our Services. 
-              By using our Services, you agree that SoftSwap can use such data in accordance with our privacy policies.
+              By using our Services, you agree that Oncodash App Store can use such data in accordance with our privacy policies.
             </p>
             
             <h2>5. Software in our Services</h2>
             <p>
-              SoftSwap gives you a personal, worldwide, royalty-free, non-assignable and non-exclusive license to use the software provided to you as part of the Services.
-              This license is for the sole purpose of enabling you to use and enjoy the benefit of the Services as provided by SoftSwap, in the manner permitted by these terms.
+              Oncodash App Store gives you a personal, worldwide, royalty-free, non-assignable and non-exclusive license to use the software provided to you as part of the Services.
+              This license is for the sole purpose of enabling you to use and enjoy the benefit of the Services as provided by Oncodash App Store, in the manner permitted by these terms.
             </p>
             
             <h2>6. Modifying and Terminating our Services</h2>

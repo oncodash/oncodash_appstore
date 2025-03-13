@@ -48,13 +48,13 @@ const Privacy = () => {
               <li>Providing, maintaining, and improving our services</li>
               <li>Processing transactions and fulfilling orders</li>
               <li>Sending notifications related to your account and purchases</li>
-              <li>Protecting SoftSwap and our users from fraud, abuse, and security risks</li>
+              <li>Protecting Oncodash App Store and our users from fraud, abuse, and security risks</li>
               <li>Complying with legal obligations</li>
             </ul>
             
             <h2>3. Information Sharing</h2>
             <p>
-              We do not share your personal information with companies, organizations, or individuals outside of SoftSwap except in the following circumstances:
+              We do not share your personal information with companies, organizations, or individuals outside of Oncodash App Store except in the following circumstances:
             </p>
             <ul>
               <li>With your consent</li>
@@ -64,7 +64,7 @@ const Privacy = () => {
             
             <h2>4. Data Security</h2>
             <p>
-              We work hard to protect SoftSwap and our users from unauthorized access, alteration, disclosure, or destruction of information we hold.
+              We work hard to protect Oncodash App Store and our users from unauthorized access, alteration, disclosure, or destruction of information we hold.
               We implement robust security measures including encryption, secure storage, and regular security audits.
             </p>
             

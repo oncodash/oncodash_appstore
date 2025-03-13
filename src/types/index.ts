@@ -13,7 +13,8 @@ export interface Product {
   title: string;
   description: string;
   price: number;
-  images: string[];
+  image_url: string;
+  file_url: string;
   category: string;
   tags: string[];
   seller: {
@@ -22,9 +23,9 @@ export interface Product {
     avatar?: string;
   };
   rating: number;
-  reviewCount: number;
-  featured?: boolean;
-  downloadCount: number;
+  reviewCount: number;  // Changed from reviewCount
+  featured: boolean;     // Changed from optional
+  downloadCount: number; // Changed from downloadCount
   createdAt: Date;
   updatedAt: Date;
 }

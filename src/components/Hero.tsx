@@ -11,14 +11,23 @@ const Hero = () => {
   useEffect(() => {
     setLoaded(true);
   }, []);
-  
+
   return (
-    <div className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white pt-32 pb-20 md:pt-40 md:pb-32">
+    <div className="relative overflow-hidden pt-32 pb-20 md:pt-40 md:pb-32">
       {/* Abstract background shapes */}
-      <div className="absolute inset-0 z-0 opacity-40">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute top-1/4 right-0 w-64 h-64 bg-accent/5 rounded-full translate-x-1/3" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-primary/5 rounded-full translate-y-1/2" />
+
+      <div className="absolute ">
+
+        <div className="ml-5 -mt-40 w-80 h-80 bg-primary/70 rounded-full -translate-y-1/3">
+        <div align='middle' style={{fontWeight:'bold', fontSize:'40px', color:'white', width: '100%', height: '100%', paddingTop: '40%'}}>
+        <img className="logo" align="center" src="oncodash-logo.svg" width="70%" alt="Oncodash Logo" />
+        App Store
+        </div>
+          </div>
+
+        {/*<div className="absolute top-1/4 right-0 w-64 h-64 rounded-full translate-x-1/3" />*/}
+        {/*<div className="absolute bottom-0 right-1/4 w-80 h-80 bg-primary/5 rounded-full translate-y-1/2" />*/}
+
       </div>
       
       <div className="container relative z-10 mx-auto px-4">
@@ -30,9 +39,7 @@ const Hero = () => {
                 animate={{ opacity: loaded ? 1 : 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                  Software Marketplace
-                </span>
+
               </motion.div>
               
               <motion.h1 
@@ -42,7 +49,7 @@ const Hero = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 Discover & Share <br className="hidden md:inline" />
-                <span className="text-primary">Exceptional Software</span>
+                <span className="text-primary">Oncodash applications</span>
               </motion.h1>
             </div>
             
@@ -52,7 +59,7 @@ const Hero = () => {
               animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 20 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              The premier marketplace for discovering high-quality software packages and tools. Find what you need or share your creations with the world.
+              The applications store for discovering Oncodash software packages, tools and metadata schemas. Find what you need or share your applications with other Oncodash users.
             </motion.p>
             
             <motion.div 
@@ -63,13 +70,13 @@ const Hero = () => {
             >
               <Button asChild size="lg" className="rounded-full px-8">
                 <Link to="/marketplace">
-                  Explore Marketplace
+                  Explore Applications
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="rounded-full px-8">
                 <Link to="/upload">
-                  Sell Your Software
+                  Share Your Software
                   <Download className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

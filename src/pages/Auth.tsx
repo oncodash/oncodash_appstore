@@ -57,7 +57,7 @@ const Auth = () => {
           
           <Card>
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold">Welcome to SoftSwap</CardTitle>
+              <CardTitle className="text-2xl font-bold">Welcome to Oncodash App Store</CardTitle>
               <CardDescription>
                 {tab === 'login' 
                   ? 'Sign in to your account to continue' 

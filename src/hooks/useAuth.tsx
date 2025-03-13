@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +6,7 @@ import { User } from '@/types';
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -17,6 +17,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  token: null,
   isAuthenticated: false,
   isLoading: true,
   login: async () => {},
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -35,8 +37,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Check if user is already logged in
     const initAuth = () => {
       const currentUser = authService.getCurrentUser();
-      if (currentUser) {
+      const storedToken = localStorage.getItem('token');
+      if (currentUser && storedToken) {
         setUser(currentUser as User);
+        setToken(storedToken);
       }
       setIsLoading(false);
     };
@@ -49,6 +53,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.login(email, password);
       setUser(response.user as User);
+      setToken(response.token);
+      localStorage.setItem('token', response.token);
       toast({
         title: "Login successful",
         description: "You are now signed in",
@@ -90,6 +96,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     authService.logout();
     setUser(null);
+    setToken(null);
+    localStorage.removeItem('token');
     toast({
       title: "Logged out",
       description: "You have been signed out successfully",
@@ -121,7 +129,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        token,
+        isAuthenticated: !!user && !!token,
         isLoading,
         login,
         register,
@@ -135,5 +144,3 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-
-export default useAuth;

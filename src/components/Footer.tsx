@@ -12,10 +12,10 @@ const Footer = () => {
           <div className="space-y-4">
             <Link to="/" className="flex items-center space-x-2">
               <Package className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">SoftSwap</span>
+              <span className="font-bold text-xl">Oncodash App Store</span>
             </Link>
             <p className="text-muted-foreground">
-              The premier marketplace for discovering and sharing high-quality software packages.
+              The application store for discovering and sharing Oncodash software packages.
             </p>
             <div className="flex space-x-4 pt-2">
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -109,7 +109,7 @@ const Footer = () => {
         
         <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} SoftSwap. All rights reserved.
+            &copy; {new Date().getFullYear()} Oncodash App Store. All rights reserved.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
