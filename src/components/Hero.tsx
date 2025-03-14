@@ -59,7 +59,7 @@ const Hero = () => {
               animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 20 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              The applications store for discovering Oncodash software packages, tools and metadata schemas. Find what you need or share your applications with other Oncodash users.
+              The application store for discovering Oncodash software packages, tools and metadata schemas. Find what you need or share your applications with other Oncodash users.
             </motion.p>
             
             <motion.div 
