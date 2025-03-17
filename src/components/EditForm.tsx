@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import axios from 'axios';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,12 +17,23 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+const categories = [
+  { value: 'genomics', label: 'Genomics' },
+  { value: 'visualization', label: 'Visualization' },
+  { value: 'analytics', label: 'Analytics'},
+  { value: 'annotation', label: 'Annotation' },
+  { value: 'etl', label: 'Extract/Transform/Load data' },
+  { value: 'utilities', label: 'Utilities' },
+];
+
 const formSchema = z.object({
   title: z.string().min(2).max(100),
   description: z.string().min(10).max(1000),
   category: z.string(),
-  price: z.number().min(0),
   tags: z.array(z.string()),
+  version: z.string().min(1, "Version is required"),
+  oncodash_version: z.string().min(1, "Oncodash version is required"),
+  license: z.string().min(1, "License is required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -43,8 +53,10 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
       title: '',
       description: '',
       category: '',
-      price: 0,
       tags: [],
+      version: '',
+      oncodash_version: '',
+      license: '',
     },
   });
 
@@ -59,25 +71,27 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
           title: product.title,
           description: product.description,
           category: product.category,
-          price: product.price,
           tags: product.tags,
+          version: product.version,
+          oncodash_version: product.oncodash_version,
+          license: product.license,
         });
       } catch (error) {
         console.error('Error fetching product:', error);
-        alert("Failed to load product data")
-
+        alert("Failed to load product data");
       }
     };
 
     fetchProduct();
   }, [productId, token, form]);
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit: SubmitHandler<FormValues> = async (values) => {
     setIsLoading(true);
     try {
-      await axios.put(`http://localhost:5000/api/products/${productId}`, values, {
+      const response = await axios.put(`http://localhost:5000/api/products/${productId}`, values, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log('Update response:', response.data);
       alert('Product updated successfully.');
       onSuccess();
     } catch (error) {
@@ -96,7 +110,6 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         alert('Product deleted successfully.');
-
         onSuccess();
       } catch (error) {
         console.error('Error deleting product:', error);
@@ -151,7 +164,11 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-
+                  {categories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -161,16 +178,40 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
 
         <FormField
           control={form.control}
-          name="price"
+          name="version"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Price (USD)</FormLabel>
+              <FormLabel>Software Version</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                />
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="oncodash_version"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Oncodash Version</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="license"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>License</FormLabel>
+              <FormControl>
+                <Input {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

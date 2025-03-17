@@ -15,7 +15,7 @@ import UploadForm from "./components/UploadForm";
 import { AuthProvider } from "./hooks/useAuth";
 import ProductDetail from './pages/ProductDetail';
 import EditProduct from "./pages/EditProduct";
-
+import MyAccount from './pages/MyAccount';
 
 
 const queryClient = new QueryClient();
@@ -32,9 +32,9 @@ const App = () => (
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/edit-product/:id" element={<EditProduct />} />
-
             <Route path="/upload" element={<UploadForm />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/my-account" element={<MyAccount />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />

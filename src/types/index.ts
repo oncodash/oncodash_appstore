@@ -16,6 +16,9 @@ export interface Product {
   image_url: string;
   file_url: string;
   category: string;
+  version: string;
+  license: string;
+  oncodash_version: string;
   tags: string[];
   seller: {
     id: string;

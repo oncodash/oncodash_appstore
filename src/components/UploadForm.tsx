@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
 import { useAuth } from '@/hooks/useAuth'; // Assuming you have an auth hook
+import toml from 'toml';
 
 
 import {
@@ -28,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import globals = require("globals");
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -35,23 +37,32 @@ const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters').max(100),
   description: z.string().min(20, 'Description must be at least 20 characters').max(1000),
   category: z.string().min(1, 'Please select a category'),
-  price: z.number().min(0, 'Price cannot be negative'),
+  //price: z.number().min(0, 'Price cannot be negative'),
   tags: z.array(z.string()).min(1, 'Add at least one tag').max(10, 'Maximum 10 tags allowed'),
   files: z.array(z.any()).min(1, 'Please upload at least one file'),
   images: z.array(z.any()).min(1, 'Please add at least one image').max(5, 'Maximum 5 images allowed'),
+  version: z.string().min(1, 'Version is required'),
+  license: z.string().min(1, 'License is required'),
+  oncodash_version: z.string().min(1, 'Please select an Oncodash version')
+
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const categories = [
-  { value: 'development-tools', label: 'Development Tools' },
-  { value: 'productivity', label: 'Productivity' },
-  { value: 'design', label: 'Design' },
+  { value: 'genomics', label: 'Genomics' },
+  { value: 'visualization', label: 'Visualization' },
+  { value: 'analytics', label: 'Analytics'},
+  { value: 'annotation', label: 'Annotation' },
+  { value: 'etl', label: 'Extract/Transform/Load data' },
   { value: 'utilities', label: 'Utilities' },
-  { value: 'business', label: 'Business' },
-  { value: 'education', label: 'Education' },
-  { value: 'entertainment', label: 'Entertainment' },
-  { value: 'security', label: 'Security' },
+];
+
+const oncodashVersions = [
+  { value: '0.6.0', label: 'Oncodash 0.6.0' },
+  { value: '0.5.4', label: 'Oncodash 0.5.4' },
+  { value: '0.5.3', label: 'Oncodash 0.5.3' },
+  // Add more versions as needed
 ];
 
 const UploadForm = () => {
@@ -72,6 +83,10 @@ const UploadForm = () => {
       tags: [],
       files: [],
       images: [],
+      version: '',
+      license: '',
+      oncodash_version: '',
+
     },
   });
 
@@ -91,7 +106,32 @@ const UploadForm = () => {
     newTags.splice(index, 1);
     form.setValue('tags', newTags);
   };
+  const readTomlAndFillForm = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      try {
+        const parsedToml = toml.parse(content);
+        console.log('Parsed TOML:', parsedToml.tool.poetry.name);
+        console.log('Parsed TOML:', parsedToml.tool.poetry.description);
+        console.log('Parsed TOML:', parsedToml);
 
+
+        // Update form fields based on TOML content
+        form.setValue('title', parsedToml.tool.poetry.name || '');
+        form.setValue('description', parsedToml.tool.poetry.description || '');
+        form.setValue('version', parsedToml.tool.poetry.version || '');
+        form.setValue('license', parsedToml.tool.poetry.license || '');
+        form.setValue('author', parsedToml.tool.poetry.authors || '');
+
+        alert('TOML file parsed and form fields updated successfully!');
+      } catch (error) {
+        console.error('Error parsing TOML:', error);
+        alert('Error parsing TOML file. Please check the file format.');
+      }
+    };
+    reader.readAsText(file);
+  };
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'files' | 'images') => {
     const uploadedFiles = e.target.files;
     if (!uploadedFiles) return;
@@ -137,7 +177,7 @@ const UploadForm = () => {
 
   const nextStep = async () => {
     if (currentStep === 1) {
-      const result = await form.trigger(['title', 'description', 'category', 'price', 'tags']);
+      const result = await form.trigger(['title', 'description', 'category', 'tags']);
       if (result) {
         setCurrentStep(2);
       }
@@ -167,7 +207,9 @@ const onSubmit = async (values: FormValues) => {
     formData.append('title', values.title);
     formData.append('description', values.description);
     formData.append('category', values.category);
-    formData.append('price', values.price.toString());
+    //formData.append('price', values.price.toString());
+    formData.append('version', values.version);
+    formData.append('license', values.license);
 
     // Append tags
     values.tags.forEach((tag, index) => {
@@ -230,23 +272,84 @@ const onSubmit = async (values: FormValues) => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {currentStep === 1 && (
-            <div className="space-y-8 animate-fade-in">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Software Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the name of your software" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Choose a clear and descriptive title for your software.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <div className="space-y-8 animate-fade-in">
+                        <FormField
+                          control={form.control}
+                          name="tomlFile"
+                          render={() => (
+                            <FormItem>
+                              <FormLabel>Fill in from TOML File (Optional)</FormLabel>
+                              <FormControl>
+                                <div className="flex items-center space-x-2">
+                                  <Input
+                                    type="file"
+                                    accept=".toml"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        readTomlAndFillForm(file);
+                                      }
+                                    }}
+                                  />
+
+                                </div>
+                              </FormControl>
+                              <FormDescription>
+                                Upload a TOML file to automatically fill in the form fields.
+                              </FormDescription>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Software Title</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter the name of your software" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Choose a clear and descriptive title for your software.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+          
+                        <FormField
+                          control={form.control}
+                          name="version"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Version</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., 1.0.0" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Specify the version of your software.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+          
+                        <FormField
+                          control={form.control}
+                          name="license"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>License</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., MIT, GPL, Apache 2.0" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Specify the license under which your software is released.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
               <FormField
                 control={form.control}
@@ -300,7 +403,7 @@ const onSubmit = async (values: FormValues) => {
                 )}
               />
 
-              <FormField
+              {/*<FormField
                 control={form.control}
                 name="price"
                 render={({ field }) => (
@@ -318,6 +421,33 @@ const onSubmit = async (values: FormValues) => {
                     </FormControl>
                     <FormDescription>
                       Set your price in USD. Enter 0 for free software.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />*/}
+              <FormField
+                control={form.control}
+                name="oncodash_version"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Oncodash Version</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Oncodash version" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {oncodashVersions.map((oncodashVersions) => (
+                          <SelectItem key={oncodashVersions.value} value={oncodashVersions.value}>
+                            {oncodashVersions.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Select the Oncodash version compatible with your software.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

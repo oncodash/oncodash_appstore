@@ -39,16 +39,16 @@ const Navbar = () => {
           <Link to="/marketplace" className="text-sm font-medium hover:text-primary transition-colors">
             Applications
           </Link>
-          <Link to="/categories" className="text-sm font-medium hover:text-primary transition-colors">
-            Categories
-          </Link>
-          <Link to="/top-sellers" className="text-sm font-medium hover:text-primary transition-colors">
+
+          {/*<Link to="/top-sellers" className="text-sm font-medium hover:text-primary transition-colors">
             Top Contributors
-          </Link>
+          </Link>*/}
           <Link to="/upload" className="text-sm font-medium hover:text-primary transition-colors">
             Share Software
           </Link>
+          <Link to="/my-account" className="text-sm font-medium hover:text-primary transition-colors">My Account</Link>
         </nav>
+
         
         {/* Search Bar */}
         <div className={`hidden md:flex relative max-w-md flex-1 mx-4 transition-all duration-200 ${searchFocused ? 'scale-105' : ''}`}>
@@ -122,18 +122,16 @@ const Navbar = () => {
               <Link to="/marketplace" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent/10 transition-colors">
                 Marketplace
               </Link>
-              <Link to="/categories" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent/10 transition-colors">
-                Categories
-              </Link>
-              <Link to="/top-sellers" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent/10 transition-colors">
+
+              {/*<Link to="/top-sellers" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent/10 transition-colors">
                 Top Sellers
-              </Link>
+              </Link>*/}
               <Link to="/upload" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent/10 transition-colors">
                 Sell Software
               </Link>
-              <Link to="/cart" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent/10 transition-colors">
+              {/*<Link to="/cart" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent/10 transition-colors">
                 Cart (0)
-              </Link>
+              </Link>*/}
               <Link to="/auth" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent/10 transition-colors">
                 Sign In / Sign Up
               </Link>

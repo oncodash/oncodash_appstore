@@ -16,20 +16,7 @@ const Index = () => {
   const [loaded, setLoaded] = useState(false);
   const [featuredProduct, setFeaturedProduct] = useState<Product | null>(null);
   const [topProducts, setTopProducts] = useState<Product[]>([]);
-  
-  useEffect(() => {
-    // Simulate data loading
-    setTimeout(() => {
-      const featured = mockProducts.find(p => p.featured) || mockProducts[0];
-      setFeaturedProduct(featured);
-      
-      const other = mockProducts.filter(p => p.id !== featured.id);
-      setTopProducts(other);
-      
-      setLoaded(true);
-    }, 500);
-  }, []);
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

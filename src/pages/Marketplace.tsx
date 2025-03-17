@@ -38,14 +38,14 @@ const categories = [
   { value: 'security', label: 'Security' },
 ];
 
-type SortOption = 'featured' | 'popular' | 'newest' | 'price-low' | 'price-high' | 'top-rated';
+type SortOption = 'featured' | 'popular' | 'newest' | 'top-rated';
 
 const sortOptions = [
   { value: 'featured', label: 'Featured' },
   { value: 'popular', label: 'Most Popular' },
   { value: 'newest', label: 'Newest' },
-  { value: 'price-low', label: 'Price: Low to High' },
-  { value: 'price-high', label: 'Price: High to Low' },
+  /*{ value: 'price-low', label: 'Price: Low to High' },
+  { value: 'price-high', label: 'Price: High to Low' },*/
   { value: 'top-rated', label: 'Top Rated' },
 ];
 
@@ -64,7 +64,7 @@ const Marketplace = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedPriceRange, setSelectedPriceRange] = useState('all');
+  //const [selectedPriceRange, setSelectedPriceRange] = useState('all');
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
@@ -114,8 +114,7 @@ const Marketplace = () => {
       result = result.filter((product) => product.category === selectedCategory);
     }
 
-    // Apply price range filter
-    if (selectedPriceRange !== 'all') {
+/*    if (selectedPriceRange !== 'all') {
       switch (selectedPriceRange) {
         case 'free':
           result = result.filter((product) => product.price === 0);
@@ -133,7 +132,7 @@ const Marketplace = () => {
           result = result.filter((product) => product.price > 100);
           break;
       }
-    }
+    }*/
 
     // Apply tag filters
     if (activeTags.length > 0) {
@@ -146,7 +145,7 @@ const Marketplace = () => {
     result = sortProducts(result, sortBy);
 
     setFilteredProducts(result);
-  }, [products, searchQuery, selectedCategory, selectedPriceRange, activeTags, sortBy]);
+  }, [products, searchQuery, selectedCategory, activeTags, sortBy]);
 
   const sortProducts = (productsToSort: Product[], sortOption: SortOption): Product[] => {
     const sorted = [...productsToSort];
@@ -158,10 +157,10 @@ const Marketplace = () => {
         return sorted.sort((a, b) => b.downloadCount - a.downloadCount);
       case 'newest':
         return sorted.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      case 'price-low':
+      /*case 'price-low':
         return sorted.sort((a, b) => a.price - b.price);
       case 'price-high':
-        return sorted.sort((a, b) => b.price - a.price);
+        return sorted.sort((a, b) => b.price - a.price);*/
       case 'top-rated':
         return sorted.sort((a, b) => b.rating - a.rating);
       default:
@@ -180,7 +179,7 @@ const Marketplace = () => {
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('all');
-    setSelectedPriceRange('all');
+    //setSelectedPriceRange('all');
     setActiveTags([]);
     setSortBy('featured');
   };
@@ -252,7 +251,7 @@ const Marketplace = () => {
                   </SelectContent>
                 </Select>
                 
-                <Select
+                {/*<Select
                   value={selectedPriceRange}
                   onValueChange={setSelectedPriceRange}
                 >
@@ -266,7 +265,7 @@ const Marketplace = () => {
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+                </Select>*/}
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -311,7 +310,7 @@ const Marketplace = () => {
                   </Badge>
                 ))}
                 
-                {(searchQuery !== '' || selectedCategory !== 'all' || selectedPriceRange !== 'all' || activeTags.length > 0 || sortBy !== 'featured') && (
+                {(searchQuery !== '' || selectedCategory !== 'all' || activeTags.length > 0 || sortBy !== 'featured') && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -342,7 +341,7 @@ const Marketplace = () => {
                   ))}
                 </div>
                 
-                {(searchQuery !== '' || selectedCategory !== 'all' || selectedPriceRange !== 'all' || activeTags.length > 0 || sortBy !== 'featured') && (
+                {(searchQuery !== '' || selectedCategory !== 'all' || activeTags.length > 0 || sortBy !== 'featured') && (
                   <Button 
                     variant="ghost" 
                     size="sm" 

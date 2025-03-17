@@ -17,7 +17,7 @@ api = Api(app)
 app.config['STATIC_FOLDER'] = 'static'
 app.config['UPLOAD_FOLDER'] = os.path.join(app.config['STATIC_FOLDER'], 'uploads')
 # Configure SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///softswap.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///appstore.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
 
@@ -54,6 +54,9 @@ class Product(db.Model):
     category = db.Column(db.String(50))
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    version = db.Column(db.String(50), nullable=False)
+    license = db.Column(db.String(100), nullable=False)
+    oncodash_version = db.Column(db.String(20), nullable=True)
 
 # Create database tables
 with app.app_context():
@@ -96,6 +99,45 @@ def token_required(f):
     return decorated
 
 class FileStorage(Resource):
+    @app.route('/api/user', methods=['GET'])
+    @token_required
+    def get_user_info(current_user):
+        return jsonify({
+            'id': current_user.id,
+            'name': current_user.name,
+            'email': current_user.email,
+            'created_at': current_user.created_at.isoformat()
+        }), 200
+
+    @app.route('/api/user/change-password', methods=['POST'])
+    @token_required
+    def change_password(current_user):
+        data = request.get_json()
+        if not check_password_hash(current_user.password, data['current_password']):
+            return jsonify({'message': 'Current password is incorrect'}), 400
+
+        current_user.password = generate_password_hash(data['new_password'])
+        db.session.commit()
+        return jsonify({'message': 'Password changed successfully'}), 200
+
+    @app.route('/api/user/products', methods=['GET'])
+    @token_required
+    def get_user_products(current_user):
+        products = Product.query.filter_by(seller_id=current_user.id).all()
+        result = []
+        for product in products:
+            result.append({
+                'id': product.id,
+                'title': product.title,
+                'description': product.description,
+                #'price': product.price,
+                'files': product.files,
+                'file_url': product.file_url,
+                'image_url': product.image_url,
+                'category': product.category,
+                'created_at': product.created_at.isoformat()
+            })
+        return jsonify(result), 200
     @app.route('/api/auth/register', methods=['POST'])
     def register(*args):
         data = request.get_json()
@@ -170,7 +212,7 @@ class FileStorage(Resource):
                 'id': product.id,
                 'title': product.title,
                 'description': product.description,
-                'price': product.price,
+                #'price': product.price,
                 'files': product.files,
                 'file_url': product.file_url,  # New field
                 'image_url': [product.image_url],
@@ -193,11 +235,14 @@ class FileStorage(Resource):
             'id': product.id,
             'title': product.title,
             'description': product.description,
-            'price': product.price,
+            #'price': product.price,
             'files': product.files,
             'file_url': product.file_url,  # New field
             'image_url': product.image_url,
             'category': product.category,
+            'version': product.version,
+            'license': product.license,
+            'oncodash_version': product.oncodash_version,
             'seller': {
                 'id': seller.id,
                 'name': seller.name
@@ -237,13 +282,16 @@ class FileStorage(Resource):
         new_product = Product(
             title=data['title'],
             description=data['description'],
-            price=float(data['price']),
+            price=float(0.0),#float(data['price']),
             files=filename,
-            file_url=file_url,  # New field
+            file_url=file_url,
             image_name=image_filename or '',
             image_url=image_url or '',
             category=data.get('category', ''),
-            seller_id=current_user.id
+            version=data['version'],
+            license=data['license'],
+            seller_id=current_user.id,
+            oncodash_version=data['oncodash_version']
         )
 
         db.session.add(new_product)
@@ -255,12 +303,15 @@ class FileStorage(Resource):
                 'id': new_product.id,
                 'title': new_product.title,
                 'description': new_product.description,
-                'price': new_product.price,
+                #'price': new_product.price,
                 'files': new_product.files,
-                'file_url': new_product.file_url,  # New field
+                'file_url': new_product.file_url,
                 'image_name': new_product.image_name,
                 'image_url': new_product.image_url,
                 'category': new_product.category,
+                'version': new_product.version,
+                'oncodash_version': new_product.oncodash_version,
+                'license': new_product.license,
                 'seller': {
                     'id': current_user.id,
                     'name': current_user.name
@@ -281,9 +332,12 @@ class FileStorage(Resource):
 
         product.title = data.get('title', product.title)
         product.description = data.get('description', product.description)
-        product.price = data.get('price', product.price)
+        #product.price = data.get('price', product.price)
         product.image_url = data.get('image_url', product.image_url)
         product.category = data.get('category', product.category)
+        product.version = data.get('version', product.version)
+        product.license = data.get('license', product.license)
+        product.oncodash_version = data.get('oncodash_version', product.oncodash_version)
 
         db.session.commit()
 
@@ -293,17 +347,20 @@ class FileStorage(Resource):
                 'id': product.id,
                 'title': product.title,
                 'description': product.description,
-                'price': product.price,
+                #'price': product.price,
                 'files': product.files,
                 'file_url': product.file_url,
                 'image_name': product.image_name,
                 'image_url': product.image_url,
                 'category': product.category,
+                'version': product.version,
+                'license': product.license,
                 'seller': {
                     'id': current_user.id,
                     'name': current_user.name
                 },
-                'created_at': product.created_at.isoformat()
+                'created_at': product.created_at.isoformat(),
+                'oncodash_version': product.oncodash_version
             }
         }), 200
 
@@ -330,4 +387,4 @@ api.add_resource(FileStorage,
 )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

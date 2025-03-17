@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Star, Download } from 'lucide-react';
+import {Star, Download, Tag, Box, FileText} from 'lucide-react';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -55,7 +55,7 @@ const ProductDetail = () => {
             <div>
               <p className="text-xl mb-4">{product.description}</p>
               <div className="flex items-center mb-4">
-                <span className="text-2xl font-bold mr-2">${product.price.toFixed(2)}</span>
+                {/*<span className="text-2xl font-bold mr-2">${product.price.toFixed(2)}</span>*/}
                 <div className="flex items-center">
                   <Star className="w-5 h-5 text-yellow-400 mr-1" />
                   {/*<span>{product.rating.toFixed(1)}</span>*/}
@@ -65,14 +65,30 @@ const ProductDetail = () => {
               <div className="mb-4">
                 <span className="font-semibold">Category:</span> {product.category}
               </div>
-              <div className="mb-4">
-                <span className="font-semibold">Tags:</span>
-                {/*<div className="flex flex-wrap gap-2 mt-2">
-                  {product.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary">{tag}</Badge>
-                  ))}
-                </div>*/}
-              </div>
+              <div className="mb-6 flex flex-wrap gap-2">
+                <Badge variant="secondary" className="flex items-center">
+                  <Tag className="w-4 h-4 mr-2" />
+                  Version: {product.version}
+                </Badge>
+                <Badge variant="secondary" className="flex items-center">
+                  <Box className="w-4 h-4 mr-2" />
+                  Oncodash Version: {product.oncodash_version}
+                </Badge>
+                <Badge variant="secondary" className="flex items-center">
+                  <FileText className="w-4 h-4 mr-2" />
+                  License: {product.license}
+                </Badge>
+              {product.tags && product.tags.length > 0 && (
+                <div className="mb-4">
+                  <span className="font-semibold">Tags:</span>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {product.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+                </div>
               <div className="mb-4">
                 <span className="font-semibold">Downloads:</span> {product.downloadCount}
               </div>
