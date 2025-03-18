@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 
 const changePasswordSchema = z.object({
@@ -67,8 +69,11 @@ const MyAccount = () => {
   const products = productsQuery.data;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">My Account</h1>
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      
+      <main className="flex-grow container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">My Account</h1>
       
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 className="text-xl font-semibold mb-2">User Information</h2>
@@ -149,6 +154,9 @@ const MyAccount = () => {
           </ul>
         )}
       </div>
+      </main>
+      
+      <Footer />
     </div>
   );
 };

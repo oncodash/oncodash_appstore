@@ -1,49 +1,59 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import axios from 'axios';
 import { useAuth } from '@/hooks/useAuth';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import {
   Form,
-  FormControl,
+  FormControl, FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const categories = [
   { value: 'genomics', label: 'Genomics' },
   { value: 'visualization', label: 'Visualization' },
-  { value: 'analytics', label: 'Analytics'},
+  { value: 'analytics', label: 'Analytics' },
   { value: 'annotation', label: 'Annotation' },
   { value: 'etl', label: 'Extract/Transform/Load data' },
   { value: 'utilities', label: 'Utilities' },
 ];
 
+const oncodashVersions = [
+  { value: '0.6.0', label: 'Oncodash 0.6.0' },
+  { value: '0.5.4', label: 'Oncodash 0.5.4' },
+  { value: '0.5.3', label: 'Oncodash 0.5.3' },
+  // Add more versions as needed
+];
+
 const formSchema = z.object({
-  title: z.string().min(2).max(100),
-  description: z.string().min(10).max(1000),
-  category: z.string(),
-  tags: z.array(z.string()),
-  version: z.string().min(1, "Version is required"),
-  oncodash_version: z.string().min(1, "Oncodash version is required"),
-  license: z.string().min(1, "License is required"),
+  title: z.string().min(5, 'Title must be at least 5 characters').max(100),
+  description: z.string().min(20, 'Description must be at least 20 characters').max(1000),
+  category: z.string().min(1, 'Please select a category'),
+  version: z.string().min(1, 'Version is required'),
+  license: z.string().min(1, 'License is required'),
+  oncodash_version: z.string().min(1, 'Please select an Oncodash version'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface EditFormProps {
-  productId: string;
-  onSuccess: () => void;
-}
-
-const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
+const EditForm: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,17 +63,18 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
       title: '',
       description: '',
       category: '',
-      tags: [],
       version: '',
-      oncodash_version: '',
       license: '',
+      oncodash_version: '',
     },
   });
 
   useEffect(() => {
     const fetchProduct = async () => {
+      if (!id) return;
+      
       try {
-        const response = await axios.get(`http://localhost:5000/api/products/${productId}`, {
+        const response = await axios.get(`http://localhost:5000/api/products/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const product = response.data;
@@ -71,10 +82,9 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
           title: product.title,
           description: product.description,
           category: product.category,
-          tags: product.tags,
           version: product.version,
-          oncodash_version: product.oncodash_version,
           license: product.license,
+          oncodash_version: product.oncodash_version,
         });
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -83,17 +93,19 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
     };
 
     fetchProduct();
-  }, [productId, token, form]);
+  }, [id, token, form]);
 
-  const onSubmit: SubmitHandler<FormValues> = async (values) => {
+  const onSubmit = async (values: FormValues) => {
+    if (!id) return;
+
     setIsLoading(true);
     try {
-      const response = await axios.put(`http://localhost:5000/api/products/${productId}`, values, {
+      const response = await axios.put(`http://localhost:5000/api/products/${id}`, values, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Update response:', response.data);
       alert('Product updated successfully.');
-      onSuccess();
+      navigate('/marketplace');
     } catch (error) {
       console.error('Error updating product:', error);
       alert('Failed to update product');
@@ -103,14 +115,16 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
   };
 
   const handleDelete = async () => {
+    if (!id) return;
+
     if (window.confirm('Are you sure you want to delete this product?')) {
       setIsLoading(true);
       try {
-        await axios.delete(`http://localhost:5000/api/products/${productId}`, {
+        await axios.delete(`http://localhost:5000/api/products/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         alert('Product deleted successfully.');
-        onSuccess();
+        navigate('/marketplace');
       } catch (error) {
         console.error('Error deleting product:', error);
         alert('Failed to delete product');
@@ -120,114 +134,138 @@ const EditForm: React.FC<EditFormProps> = ({ productId, onSuccess }) => {
     }
   };
 
+  if (!id) {
+    return <div>No product ID provided</div>;
+  }
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Software Title</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Software Title</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
+                  <Input {...field} />
                 </FormControl>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="version"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Software Version</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="oncodash_version"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Oncodash Version</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="license"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>License</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="version"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Software Version</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="flex justify-between">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Updating...' : 'Update Product'}
-          </Button>
-          <Button type="button" variant="destructive" onClick={handleDelete} disabled={isLoading}>
-            {isLoading ? 'Deleting...' : 'Delete Product'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          <FormField
+                control={form.control}
+                name="oncodash_version"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Oncodash Version</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Oncodash version" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {oncodashVersions.map((oncodashVersion) => (
+                          <SelectItem key={oncodashVersion.value} value={oncodashVersion.value}>
+                            {oncodashVersion.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Select the Oncodash version compatible with your software.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+          <FormField
+            control={form.control}
+            name="license"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>License</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-between">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Updating...' : 'Update Product'}
+            </Button>
+            <Button type="button" variant="destructive" onClick={handleDelete} disabled={isLoading}>
+              {isLoading ? 'Deleting...' : 'Delete Product'}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 };
 

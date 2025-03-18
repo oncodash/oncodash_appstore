@@ -177,7 +177,7 @@ const UploadForm = () => {
 
   const nextStep = async () => {
     if (currentStep === 1) {
-      const result = await form.trigger(['title', 'description', 'category', 'tags']);
+      const result = await form.trigger(['title', 'description', 'category', 'version', 'oncodash_version']);
       if (result) {
         setCurrentStep(2);
       }
@@ -207,6 +207,7 @@ const onSubmit = async (values: FormValues) => {
     formData.append('title', values.title);
     formData.append('description', values.description);
     formData.append('category', values.category);
+    formData.append('oncodash_version', values.oncodash_version);
     //formData.append('price', values.price.toString());
     formData.append('version', values.version);
     formData.append('license', values.license);
@@ -402,8 +403,37 @@ const onSubmit = async (values: FormValues) => {
                   </FormItem>
                 )}
               />
-
-              {/*<FormField
+              <FormField
+                control={form.control}
+                name="oncodash_version"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Oncodash Version</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Oncodash version" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {oncodashVersions.map((oncodashVersion) => (
+                          <SelectItem key={oncodashVersion.value} value={oncodashVersion.value}>
+                            {oncodashVersion.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Select the Oncodash version compatible with your software.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+                {/*<FormField
                 control={form.control}
                 name="price"
                 render={({ field }) => (
@@ -426,34 +456,6 @@ const onSubmit = async (values: FormValues) => {
                   </FormItem>
                 )}
               />*/}
-              <FormField
-                control={form.control}
-                name="oncodash_version"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Oncodash Version</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Oncodash version" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {oncodashVersions.map((oncodashVersions) => (
-                          <SelectItem key={oncodashVersions.value} value={oncodashVersions.value}>
-                            {oncodashVersions.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Select the Oncodash version compatible with your software.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name="tags"

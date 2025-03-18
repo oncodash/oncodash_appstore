@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {Star, Download, Tag, Box, FileText} from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +45,7 @@ const ProductDetail = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Navbar />
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl font-bold">{product.title}</CardTitle>
@@ -110,6 +114,7 @@ const ProductDetail = () => {
           </div>
         </CardContent>
       </Card>
+      <Footer />
     </div>
   );
 };
