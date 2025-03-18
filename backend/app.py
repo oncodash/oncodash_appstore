@@ -134,6 +134,8 @@ class FileStorage(Resource):
                 'files': product.files,
                 'file_url': product.file_url,
                 'image_url': product.image_url,
+                'version': product.version,
+                'oncodash_version': product.oncodash_version,
                 'category': product.category,
                 'created_at': product.created_at.isoformat()
             })

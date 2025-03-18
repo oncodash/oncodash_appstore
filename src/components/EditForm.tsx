@@ -8,6 +8,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+
 import {
   Form,
   FormControl, FormDescription,
@@ -139,7 +142,9 @@ const EditForm: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 mt-16">
+        <Navbar />
+
       <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

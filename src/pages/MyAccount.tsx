@@ -141,7 +141,7 @@ const MyAccount = () => {
             {products.map((product) => (
               <li key={product.id} className="mb-2 flex justify-between items-center">
                 <span>
-                  <strong>{product.title}</strong> - ${product.price}
+                  <strong>{product.title}</strong> - {product.version}
                 </span>
                 <Link
                   to={`/edit-product/${product.id}`}

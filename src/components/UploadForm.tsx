@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,6 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
 import { useAuth } from '@/hooks/useAuth'; // Assuming you have an auth hook
 import toml from 'toml';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+
 
 
 import {
@@ -72,6 +75,8 @@ const UploadForm = () => {
   const { user, token } = useAuth();
 
   console.log('Auth state:', { user, token }); // Add this line for debugging
+
+  // TODO: Add link field option instead of uploading file. Group software with same title (version can differ), same product can have multiple files
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -268,7 +273,8 @@ const onSubmit = async (values: FormValues) => {
 
   return (
 
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto mt-16 ">
+       <Navbar  />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
