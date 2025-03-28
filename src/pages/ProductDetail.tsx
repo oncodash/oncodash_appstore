@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import {Star, Download, Tag, Box, FileText} from 'lucide-react';
+import {Star, Download, Tag, Box, FileText, ExternalLink} from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +51,6 @@ const ProductDetail = () => {
           <CardTitle className="text-3xl font-bold">{product.title}</CardTitle>
         </CardHeader>
         <CardContent>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <img src={product.image_url} alt={product.title} className="w-full h-auto rounded-lg shadow-lg" />
@@ -60,10 +58,8 @@ const ProductDetail = () => {
             <div>
               <p className="text-xl mb-4">{product.description}</p>
               <div className="flex items-center mb-4">
-                {/*<span className="text-2xl font-bold mr-2">${product.price.toFixed(2)}</span>*/}
                 <div className="flex items-center">
                   <Star className="w-5 h-5 text-yellow-400 mr-1" />
-                  {/*<span>{product.rating.toFixed(1)}</span>*/}
                   <span className="text-gray-500 ml-1">({product.reviewCount} reviews)</span>
                 </div>
               </div>
@@ -83,6 +79,7 @@ const ProductDetail = () => {
                   <FileText className="w-4 h-4 mr-2" />
                   License: {product.license}
                 </Badge>
+              </div>
               {product.tags && product.tags.length > 0 && (
                 <div className="mb-4">
                   <span className="font-semibold">Tags:</span>
@@ -93,7 +90,6 @@ const ProductDetail = () => {
                   </div>
                 </div>
               )}
-                </div>
               <div className="mb-4">
                 <span className="font-semibold">Downloads:</span> {product.downloadCount}
               </div>
@@ -107,10 +103,25 @@ const ProductDetail = () => {
                   <span>{product.seller.name}</span>
                 </div>
               </div>
-              <Button className="w-full" onClick={() => window.open(`${product.file_url}`, '_blank')}>
-                <Download className="w-4 h-4 mr-2" />
-                Download Software
-              </Button>
+              {product.external_url && (
+                <div className="mb-4">
+                  <a 
+                    href={product.external_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:text-blue-700 flex items-center"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Visit External Website
+                  </a>
+                </div>
+              )}
+              {product.file_url && (
+                <Button className="w-full" onClick={() => window.open(`${product.file_url}`, '_blank')}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Software
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

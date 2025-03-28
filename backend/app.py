@@ -41,12 +41,12 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     products = db.relationship('Product', backref='seller', lazy=True)
 
-# Define Product model
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    files = db.Column(db.String(255), nullable=False)
-    file_url = db.Column(db.String(255), nullable=False)  # New field
+    files = db.Column(db.String(255), nullable=True)  # Make this nullable
+    file_url = db.Column(db.String(255), nullable=True)  # Make this nullable
+    external_url = db.Column(db.String(255), nullable=True)  # Add this new field
     image_name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
@@ -57,7 +57,6 @@ class Product(db.Model):
     version = db.Column(db.String(50), nullable=False)
     license = db.Column(db.String(100), nullable=False)
     oncodash_version = db.Column(db.String(20), nullable=True)
-
 # Create database tables
 with app.app_context():
     db.create_all()
@@ -130,9 +129,9 @@ class FileStorage(Resource):
                 'id': product.id,
                 'title': product.title,
                 'description': product.description,
-                #'price': product.price,
                 'files': product.files,
                 'file_url': product.file_url,
+                'external_url': product.external_url,
                 'image_url': product.image_url,
                 'version': product.version,
                 'oncodash_version': product.oncodash_version,
@@ -209,14 +208,14 @@ class FileStorage(Resource):
 
         result = []
         for product in products:
-            seller = User.query.get(product.seller_id)
+            seller = User.query.get_or_404(product.seller_id)
             result.append({
                 'id': product.id,
                 'title': product.title,
                 'description': product.description,
-                #'price': product.price,
                 'files': product.files,
-                'file_url': product.file_url,  # New field
+                'file_url': product.file_url,
+                'external_url': product.external_url,
                 'image_url': [product.image_url],
                 'category': product.category,
                 'seller': {
@@ -231,15 +230,15 @@ class FileStorage(Resource):
     @app.route('/api/products/<int:id>', methods=['GET'])
     def get_product(id):
         product = Product.query.get_or_404(id)
-        seller = User.query.get(product.seller_id)
+        seller = User.query.get_or_404(product.seller_id)
 
         return jsonify({
             'id': product.id,
             'title': product.title,
             'description': product.description,
-            #'price': product.price,
             'files': product.files,
-            'file_url': product.file_url,  # New field
+            'file_url': product.file_url,
+            'external_url': product.external_url,
             'image_url': product.image_url,
             'category': product.category,
             'version': product.version,
@@ -256,37 +255,38 @@ class FileStorage(Resource):
     @token_required
     def create_product(current_user):
         data = request.form
-        if 'files' not in request.files:
-            return {'error': 'No file part'}, 400
-        file = request.files['files']
-        image = request.files.get('images')  # Image is optional
+        external_url = request.form.get('external_url')
+    
+        if 'files' not in request.files and not external_url:
+            return {'error': 'Either a file or an external URL must be provided'}, 400
 
-        if file.filename == '':
-            return {'error': 'No selected file'}, 400
-
+        file = request.files.get('files')
+        image = request.files.get('images')
+    
+        file_url = None
+        filename = None
+    
         if file:
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
-
-            # Create the file_url pointing to the uploads folder
             file_url = url_for('static', filename=f'uploads/{filename}', _external=True)
-
-            # Save image if provided
-            image_filename = None
-            image_url = None
-            if image and image.filename != '':
-                image_filename = secure_filename(image.filename)
-                image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
-                image.save(image_path)
-                image_url = url_for('static', filename=f'uploads/{image_filename}', _external=True)
-
+    
+        image_filename = None
+        image_url = None
+        if image and image.filename != '':
+            image_filename = secure_filename(image.filename)
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+            image.save(image_path)
+            image_url = url_for('static', filename=f'uploads/{image_filename}', _external=True)
+    
         new_product = Product(
             title=data['title'],
             description=data['description'],
-            price=float(0.0),#float(data['price']),
+            price=float(0.0),
             files=filename,
             file_url=file_url,
+            external_url=external_url,
             image_name=image_filename or '',
             image_url=image_url or '',
             category=data.get('category', ''),
@@ -295,19 +295,19 @@ class FileStorage(Resource):
             seller_id=current_user.id,
             oncodash_version=data['oncodash_version']
         )
-
+    
         db.session.add(new_product)
         db.session.commit()
-
+    
         return {
             'message': 'Product created successfully',
             'product': {
                 'id': new_product.id,
                 'title': new_product.title,
                 'description': new_product.description,
-                #'price': new_product.price,
                 'files': new_product.files,
                 'file_url': new_product.file_url,
+                'external_url': new_product.external_url,
                 'image_name': new_product.image_name,
                 'image_url': new_product.image_url,
                 'category': new_product.category,

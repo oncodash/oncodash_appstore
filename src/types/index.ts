@@ -15,6 +15,7 @@ export interface Product {
   price: number;
   image_url: string;
   file_url: string;
+  external_url?: string; // Add this line
   category: string;
   version: string;
   license: string;
@@ -51,3 +52,4 @@ export interface Review {
   comment: string;
   createdAt: Date;
 }
+

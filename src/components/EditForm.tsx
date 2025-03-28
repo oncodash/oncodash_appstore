@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 
 import {
   Form,
@@ -50,9 +49,18 @@ const formSchema = z.object({
   version: z.string().min(1, 'Version is required'),
   license: z.string().min(1, 'License is required'),
   oncodash_version: z.string().min(1, 'Please select an Oncodash version'),
+  external_url: z.string().url().optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+interface FormValues {
+  title: string;
+  description: string;
+  category: string;
+  version: string;
+  license: string;
+  oncodash_version: string;
+  external_url: string;
+}
 
 const EditForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -69,6 +77,7 @@ const EditForm: React.FC = () => {
       version: '',
       license: '',
       oncodash_version: '',
+      external_url: '',
     },
   });
 
@@ -88,6 +97,7 @@ const EditForm: React.FC = () => {
           version: product.version,
           license: product.license,
           oncodash_version: product.oncodash_version,
+          external_url: product.external_url,
         });
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -255,6 +265,23 @@ const EditForm: React.FC = () => {
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="external_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>External URL</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="https://example.com/your-software" />
+                </FormControl>
+                <FormDescription>
+                  Provide an external URL for your software if it's hosted elsewhere.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

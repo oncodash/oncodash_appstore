@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Star, Download, Tag, Box, FileText } from 'lucide-react';
+import {Heart, Star, Download, Tag, Box, FileText, ExternalLink} from 'lucide-react';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +34,19 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="mt-2">
           <span className="text-sm text-gray-500">Downloads: {product.downloadCount}</span>
         </div>
+{product.external_url && (
+  <div className="mt-2">
+    <a 
+      href={product.external_url} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="text-blue-500 hover:text-blue-700 flex items-center"
+    >
+      <ExternalLink className="w-4 h-4 mr-1" />
+      External Link
+    </a>
+  </div>
+)}
         <div className="mt-2 flex flex-wrap gap-2">
           <Badge variant="secondary" className="flex items-center">
             <Tag className="w-3 h-3 mr-1" />

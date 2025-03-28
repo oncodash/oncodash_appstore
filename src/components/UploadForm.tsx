@@ -40,15 +40,25 @@ const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters').max(100),
   description: z.string().min(20, 'Description must be at least 20 characters').max(1000),
   category: z.string().min(1, 'Please select a category'),
-  //price: z.number().min(0, 'Price cannot be negative'),
   tags: z.array(z.string()).min(1, 'Add at least one tag').max(10, 'Maximum 10 tags allowed'),
-  files: z.array(z.any()).min(1, 'Please upload at least one file'),
-  images: z.array(z.any()).min(1, 'Please add at least one image').max(5, 'Maximum 5 images allowed'),
   version: z.string().min(1, 'Version is required'),
   license: z.string().min(1, 'License is required'),
-  oncodash_version: z.string().min(1, 'Please select an Oncodash version')
-
-});
+  oncodash_version: z.string().min(1, 'Please select an Oncodash version'),
+  images: z.array(z.any()).min(1, 'Please add at least one image').max(5, 'Maximum 5 images allowed'),
+  files: z.array(z.any()).optional(),
+  external_url: z.string().url().optional(),
+}).refine((data) => {
+  // Check if either files or external_url is provided
+  return (data.files && data.files.length > 0) || (data.external_url && data.external_url.length > 0);
+}, {
+  message: "Either a file upload or an external URL must be provided",
+  path: ["files"], // This will show the error on the files field
+}).and(
+  z.object({
+    files: z.array(z.any()).optional(),
+    external_url: z.string().url().optional(),
+  })
+);
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -73,6 +83,7 @@ const UploadForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, token } = useAuth();
+  const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
 
   console.log('Auth state:', { user, token }); // Add this line for debugging
 
@@ -87,6 +98,7 @@ const UploadForm = () => {
       price: 0,
       tags: [],
       files: [],
+      external_url: '',
       images: [],
       version: '',
       license: '',
@@ -216,15 +228,18 @@ const onSubmit = async (values: FormValues) => {
     //formData.append('price', values.price.toString());
     formData.append('version', values.version);
     formData.append('license', values.license);
+    if (values.external_url) {
+      formData.append('external_url', values.external_url);
+    }
+    if (values.files && values.files.length > 0) {
+      values.files.forEach((file, index) => {
+        formData.append(`files`, file);
+      });
+    }
 
     // Append tags
     values.tags.forEach((tag, index) => {
       formData.append(`tags[${index}]`, tag);
-    });
-
-    // Append files
-    values.files.forEach((file, index) => {
-      formData.append(`files`, file);
     });
 
     // Append images
@@ -262,6 +277,7 @@ const onSubmit = async (values: FormValues) => {
     setIsSubmitting(false);
   }
 };
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -522,6 +538,33 @@ const onSubmit = async (values: FormValues) => {
 
           {currentStep === 2 && (
             <div className="space-y-8 animate-fade-in">
+              {/*<FormField
+                control={form.control}
+                name="uploadMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Upload Method</FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        setUploadMethod(value as 'file' | 'url');
+                        field.onChange(value);
+                      }}
+                      defaultValue={uploadMethod}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select upload method" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="file">Upload File</SelectItem>
+                        <SelectItem value="url">Provide URL</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              {uploadMethod === 'file' && (*/}
               <FormField
                 control={form.control}
                 name="files"
@@ -587,7 +630,28 @@ const onSubmit = async (values: FormValues) => {
                   </FormItem>
                 )}
               />
-
+              {/*{uploadMethod === 'url' && (*/}
+                <FormField
+                  control={form.control}
+                  name="external_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Software URL</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="url"
+                          placeholder="https://example.com/your-software.zip"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Provide a direct URL to your software files.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              {/*)}*/}
               <FormField
                 control={form.control}
                 name="images"
