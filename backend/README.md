@@ -1,8 +1,6 @@
 
 # Oncodash App Store Backend
 
-This is a Flask backend with SQLite database for the SoftSwap application.
-
 ## Setup
 
 1. Install dependencies:
