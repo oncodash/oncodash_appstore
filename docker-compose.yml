@@ -1,0 +1,22 @@
+
+services:
+  backend:
+    build: ./backend
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5000:5000"  # Expose backend port
+
+  frontend:
+    build: .
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://backend:5000  # Set API URL for frontend
+
+volumes:
+  backend_data:
