@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
+import { categories, Category } from '@/pages/Index';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 import {
   Form,
@@ -25,15 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-const categories = [
-  { value: 'genomics', label: 'Genomics' },
-  { value: 'visualization', label: 'Visualization' },
-  { value: 'analytics', label: 'Analytics' },
-  { value: 'annotation', label: 'Annotation' },
-  { value: 'etl', label: 'Extract/Transform/Load data' },
-  { value: 'utilities', label: 'Utilities' },
-];
 
 const oncodashVersions = [
   { value: '0.6.0', label: 'Oncodash 0.6.0' },
@@ -86,7 +80,7 @@ const EditForm: React.FC = () => {
       if (!id) return;
       
       try {
-        const response = await axios.get(`http://localhost:5000/api/products/${id}`, {
+        const response = await axios.get(`${API_URL}/products/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const product = response.data;
@@ -113,7 +107,7 @@ const EditForm: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.put(`http://localhost:5000/api/products/${id}`, values, {
+      const response = await axios.put(`${API_URL}/products/${id}`, values, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Update response:', response.data);
@@ -133,7 +127,7 @@ const EditForm: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       setIsLoading(true);
       try {
-        await axios.delete(`http://localhost:5000/api/products/${id}`, {
+        await axios.delete(`${API_URL}/products/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         alert('Product deleted successfully.');

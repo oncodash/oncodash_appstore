@@ -1,3 +1,4 @@
+This README file provides standalone instructions for setting up and running the Oncodash App Store backend application.
 
 # Oncodash App Store Backend
 
@@ -35,7 +36,7 @@ The application uses SQLite with two main tables:
 - Users - For user account data
 - Products - For software product data
 
-The database file is created automatically as `softswap.db` when the application runs.
+The database file is created automatically as `appstore.db` when the application runs.
 
 ## Security
 

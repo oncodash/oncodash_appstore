@@ -9,11 +9,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
-import { useAuth } from '@/hooks/useAuth'; // Assuming you have an auth hook
+import { useAuth } from '@/hooks/useAuth';
 import toml from 'toml';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { categories, Category } from '@/pages/Index';
 
+const API_URL = import.meta.env.VITE_API_URL;
+console.log("upload API URL:", API_URL);
 
 
 import {
@@ -45,31 +48,16 @@ const formSchema = z.object({
   license: z.string().min(1, 'License is required'),
   oncodash_version: z.string().min(1, 'Please select an Oncodash version'),
   images: z.array(z.any()).min(1, 'Please add at least one image').max(5, 'Maximum 5 images allowed'),
-  files: z.array(z.any()).optional(),
-  external_url: z.string().url().optional(),
+  files: z.array(z.any()).optional().default([]),
+  external_url: z.string().url().optional().or(z.literal('')),
 }).refine((data) => {
   // Check if either files or external_url is provided
-  return (data.files && data.files.length > 0) || (data.external_url && data.external_url.length > 0);
+  return data.files.length > 0 || (data.external_url && data.external_url.trim() !== '');
 }, {
-  message: "Either a file upload or an external URL must be provided",
-  path: ["files"], // This will show the error on the files field
-}).and(
-  z.object({
-    files: z.array(z.any()).optional(),
-    external_url: z.string().url().optional(),
-  })
-);
+  message: "Either a file upload or an external URL must be provided"
+})
 
 type FormValues = z.infer<typeof formSchema>;
-
-const categories = [
-  { value: 'genomics', label: 'Genomics' },
-  { value: 'visualization', label: 'Visualization' },
-  { value: 'analytics', label: 'Analytics'},
-  { value: 'annotation', label: 'Annotation' },
-  { value: 'etl', label: 'Extract/Transform/Load data' },
-  { value: 'utilities', label: 'Utilities' },
-];
 
 const oncodashVersions = [
   { value: '0.6.0', label: 'Oncodash 0.6.0' },
@@ -228,7 +216,7 @@ const onSubmit = async (values: FormValues) => {
     //formData.append('price', values.price.toString());
     formData.append('version', values.version);
     formData.append('license', values.license);
-    if (values.external_url) {
+    if (values.external_url && values.external_url.trim() !== '') {
       formData.append('external_url', values.external_url);
     }
     if (values.files && values.files.length > 0) {
@@ -249,12 +237,12 @@ const onSubmit = async (values: FormValues) => {
 
     console.log('Sending data:', Object.fromEntries(formData));
 
-    const response = await axios.post('http://localhost:5000/api/products', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await axios.post(`${API_URL}/products`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
     console.log('Product created:', response.data);
     alert('Software successfully uploaded! It will be reviewed before being published.');

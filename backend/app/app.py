@@ -1,25 +1,30 @@
 import os
+import uuid
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import jwt
 from functools import wraps
 from flask import url_for
 
+
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 api = Api(app)
 app.config['STATIC_FOLDER'] = 'static'
-app.config['UPLOAD_FOLDER'] = os.path.join(app.config['STATIC_FOLDER'], 'uploads')
+app.config['UPLOAD_FOLDER'] = '/app/static/uploads'
 # Configure SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///appstore.db'
+DB_PATH = '/app/db/appstore.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+HOST = os.environ.get('API_HOST', 'https://oncodash-appstore.ltdk.helsinki.fi')
 
 UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):
@@ -41,6 +46,16 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     products = db.relationship('Product', backref='seller', lazy=True)
 
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('reviews', lazy=True))
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -57,9 +72,55 @@ class Product(db.Model):
     version = db.Column(db.String(50), nullable=False)
     license = db.Column(db.String(100), nullable=False)
     oncodash_version = db.Column(db.String(20), nullable=True)
+    reviews = db.relationship('Review', backref='product', lazy=True)
+
+    __table_args__ = (db.UniqueConstraint('title', 'version', name='uq_title_version'),)
+
+    @property
+    def is_latest_version(self):
+        latest = Product.query.filter_by(title=self.title).order_by(Product.version.desc()).first()
+        return latest.id == self.id
+
+    def to_dict(self):
+        reviews = [
+            {
+                'id': review.id,
+                'userId': review.user_id,
+                'userName': review.user.name,
+                'rating': review.rating,
+                'comment': review.comment,
+                'createdAt': review.created_at.isoformat()
+            } for review in self.reviews
+        ]
+        review_count = len(reviews)
+
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'files': self.files,
+            'file_url': self.file_url,
+            'external_url': self.external_url,
+            'image_url': self.image_url,
+            'category': self.category,
+            'version': self.version,
+            'license': self.license,
+            'oncodash_version': self.oncodash_version,
+            'seller': {
+                'id': self.seller.id,
+                'name': self.seller.name
+            },
+            'created_at': self.created_at.isoformat(),
+            'reviews': reviews,
+            'reviewCount': review_count
+        }
+
 # Create database tables
 with app.app_context():
     db.create_all()
+
+def get_external_url(endpoint, **values):
+    return f"{HOST}{url_for(endpoint, **values)}"
 
 # Helper functions
 def generate_token(user_id):
@@ -139,6 +200,7 @@ class FileStorage(Resource):
                 'created_at': product.created_at.isoformat()
             })
         return jsonify(result), 200
+
     @app.route('/api/auth/register', methods=['POST'])
     def register(*args):
         data = request.get_json()
@@ -203,53 +265,21 @@ class FileStorage(Resource):
         return jsonify({'message': 'Password reset instructions sent if email exists'}), 200
 
     @app.route('/api/products', methods=['GET'])
-    def get_products(*args):
-        products = Product.query.all()
-
-        result = []
+    def get_products():
+        products = Product.query.order_by(Product.title, Product.version.desc()).all()
+        latest_products = {}
         for product in products:
-            seller = User.query.get_or_404(product.seller_id)
-            result.append({
-                'id': product.id,
-                'title': product.title,
-                'description': product.description,
-                'files': product.files,
-                'file_url': product.file_url,
-                'external_url': product.external_url,
-                'image_url': [product.image_url],
-                'category': product.category,
-                'seller': {
-                    'id': seller.id,
-                    'name': seller.name,
-                },
-                'createdAt': product.created_at.isoformat(),
-            })
-
-        return jsonify(result), 200
+            if product.title not in latest_products:
+                latest_products[product.title] = product
+        return jsonify([product.to_dict() for product in latest_products.values()])
 
     @app.route('/api/products/<int:id>', methods=['GET'])
     def get_product(id):
         product = Product.query.get_or_404(id)
-        seller = User.query.get_or_404(product.seller_id)
-
-        return jsonify({
-            'id': product.id,
-            'title': product.title,
-            'description': product.description,
-            'files': product.files,
-            'file_url': product.file_url,
-            'external_url': product.external_url,
-            'image_url': product.image_url,
-            'category': product.category,
-            'version': product.version,
-            'license': product.license,
-            'oncodash_version': product.oncodash_version,
-            'seller': {
-                'id': seller.id,
-                'name': seller.name
-            },
-            'createdAt': product.created_at.isoformat()
-        }), 200
+        versions = Product.query.filter_by(title=product.title).order_by(Product.version.desc()).all()
+        product_dict = product.to_dict()
+        product_dict['versions'] = [{'id': v.id, 'version': v.version} for v in versions]
+        return jsonify(product_dict)
 
     @app.route('/api/products', methods=['POST'])
     @token_required
@@ -267,19 +297,21 @@ class FileStorage(Resource):
         filename = None
     
         if file:
-            filename = secure_filename(file.filename)
+            original_filename, file_extension = os.path.splitext(file.filename)
+            filename = str(uuid.uuid4()) + file_extension
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
-            file_url = url_for('static', filename=f'uploads/{filename}', _external=True)
-    
+            file_url = get_external_url('static', filename=f'uploads/{filename}')
+
         image_filename = None
         image_url = None
         if image and image.filename != '':
-            image_filename = secure_filename(image.filename)
+            original_filename, file_extension = os.path.splitext(image.filename)
+            image_filename = str(uuid.uuid4()) + file_extension
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
             image.save(image_path)
-            image_url = url_for('static', filename=f'uploads/{image_filename}', _external=True)
-    
+            image_url = get_external_url('static', filename=f'uploads/{image_filename}')
+
         new_product = Product(
             title=data['title'],
             description=data['description'],
@@ -379,14 +411,49 @@ class FileStorage(Resource):
 
         return jsonify({'message': 'Product deleted successfully'}), 200
 
+    @app.route('/api/reviews/<int:product_id>', methods=['POST'])
+    @token_required
+    def add_review(current_user, product_id):
+        data = request.get_json()
+
+        if not data or 'rating' not in data or 'comment' not in data:
+            return jsonify({'message': 'Missing required fields'}), 400
+
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({'message': 'Product not found'}), 404
+
+        new_review = Review(
+            product_id=product_id,
+            user_id=current_user.id,
+            rating=data['rating'],
+            comment=data['comment']
+        )
+
+        db.session.add(new_review)
+        db.session.commit()
+
+        return jsonify({
+            'id': new_review.id,
+            'productId': new_review.product_id,
+            'userId': new_review.user_id,
+            'userName': current_user.name,
+            #'userAvatar': current_user.avatar,
+            'rating': new_review.rating,
+            'comment': new_review.comment,
+            'createdAt': new_review.created_at.isoformat()
+        }), 201
+
+
 # Add routes
 api.add_resource(FileStorage, 
     '/api/auth/register', 
     '/api/auth/login', 
     '/api/auth/forgot-password',
     '/api/products', 
-    '/api/products/<int:id>'
+    '/api/products/<int:id>',
+    '/api/reviews/<int:id>'
 )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

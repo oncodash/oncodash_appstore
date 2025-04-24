@@ -23,20 +23,9 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductGrid from '@/components/ProductGrid';
 import { Product } from '@/types';
+import { categories, Category } from '@/pages/Index';
 
-
-
-const categories = [
-  { value: 'all', label: 'All Categories' },
-  { value: 'development-tools', label: 'Development Tools' },
-  { value: 'productivity', label: 'Productivity' },
-  { value: 'design', label: 'Design' },
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'business', label: 'Business' },
-  { value: 'education', label: 'Education' },
-  { value: 'entertainment', label: 'Entertainment' },
-  { value: 'security', label: 'Security' },
-];
+const API_URL = import.meta.env.VITE_API_URL;
 
 type SortOption = 'featured' | 'popular' | 'newest' | 'top-rated';
 
@@ -73,7 +62,7 @@ const Marketplace = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch(`${API_URL}/products`);
         if (!response.ok) {
           const text = await response.text();
           console.error('Server response:', text);

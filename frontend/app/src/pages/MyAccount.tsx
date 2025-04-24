@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(6, 'Password must be at least 6 characters'),
@@ -28,17 +29,17 @@ const MyAccount = () => {
   const userQuery = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
-      const response = await axios.get('/api/user', {
+      const response = await axios.get(`${API_URL}/user`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       return response.data;
     }
   });
-
+  
   const productsQuery = useQuery({
     queryKey: ['userProducts'],
     queryFn: async () => {
-      const response = await axios.get('/api/user/products', {
+      const response = await axios.get(`${API_URL}/user/products`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       return response.data;
@@ -47,7 +48,7 @@ const MyAccount = () => {
 
   const changePasswordMutation = useMutation({
     mutationFn: (data: ChangePasswordFormData) => 
-      axios.post('/api/user/change-password', data, {
+      axios.post(`${API_URL}/user/change-password`, data, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       }),
     onSuccess: () => {

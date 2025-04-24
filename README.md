@@ -1,37 +1,19 @@
 # Oncodash App Store
 
-Requirements: Python 3.10+, Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The Oncodash App Store is a platform for discovering and distributing Oncodash applications and plugins. It consists of a backend built with Python and Flask, and a frontend built with TypeScript, React, and Vite.
 
-Follow these steps:
+## Prerequisites
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone git@github.com:oncodash/oncodash_appstore.git
-cd oncodash_appstore
+- Docker
+- Docker Compose
 
-# Step 2: Install backend dependencies and run the backend.
-cd backend
-python -m venv backend
-source backend/bin/activate
-pip install -r requirements.txt
-python app.py
+## Getting Started
 
-# Step 3: Install the necessary dependencies for frontend.
-cd ../frontend
-npm i
+1. git clone git@github.com:oncodash/oncodash_appstore.git
+2. cd oncodash_appstore
+3. Copy .env.example to .env and set up environment variables
+4. Ensure the `docker-compose.yml` file is configured correctly for your environment.
+5. docker-compose up -d --build
+6. Access the application:
+- http://localhost:8000
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-navigate to http://localhost:port (port number will be displayed in the terminal)
-```
-
-## Technologies used
-
-- Python
-- Flask
-- SQLite
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS

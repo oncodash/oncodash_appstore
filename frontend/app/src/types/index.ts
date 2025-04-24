@@ -18,6 +18,7 @@ export interface Product {
   external_url?: string; // Add this line
   category: string;
   version: string;
+  versions: { id: string; version: string }[];
   license: string;
   oncodash_version: string;
   tags: string[];

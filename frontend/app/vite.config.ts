@@ -8,11 +8,17 @@ export default defineConfig(({ mode }) => ({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',  // Adjust this to your Flask server's address
+        target: process.env.VITE_API_URL,  // Adjust this to your Flask server's address
         changeOrigin: true,
         secure: false,
       }
-    }
+    },
+    allowedHosts: ["*"],
+    host: '0.0.0.0',
+    port: 8000
+  },
+  define: {
+    'process.env': process.env
   },
   plugins: [
     react(),

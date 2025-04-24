@@ -93,8 +93,8 @@ const Hero = () => {
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 blur-3xl" />
               <div className="relative shadow-xl rounded-2xl overflow-hidden bg-white">
                 <img 
-                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1800&q=80" 
-                  alt="Software Marketplace" 
+                  src="/ngseq.jpg"
+                  alt="App Store"
                   className="w-full h-auto rounded-2xl" 
                 />
               </div>

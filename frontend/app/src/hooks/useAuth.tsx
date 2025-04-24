@@ -12,7 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  forgotPassword: (email: string) => Promise<void>;
+  signOut: () => void; // Add this line
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   register: async () => {},
   logout: () => {},
-  forgotPassword: async () => {},
+  signOut: () => {}, // Add this line
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const logout = () => {
+  const signOut = () => {
     authService.logout();
     setUser(null);
     setToken(null);
@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     navigate('/');
   };
-  
+
   const forgotPassword = async (email: string) => {
     setIsLoading(true);
     try {
@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <AuthContext.Provider
       value={{
@@ -134,8 +134,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         login,
         register,
-        logout,
-        forgotPassword,
+        logout: signOut, // Use signOut for both logout and signOut
+        signOut,
       }}
     >
       {children}

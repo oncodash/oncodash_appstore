@@ -11,7 +11,17 @@ import FeaturedProduct from '@/components/FeaturedProduct';
 import { Product } from '@/types';
 
 // Mock data
+export const categories = [
+  { value: 'all', label: 'All Categories' },
+  { value: 'genomics', label: 'Genomics' },
+  { value: 'visualization', label: 'Visualization' },
+  { value: 'analytics', label: 'Analytics'},
+  { value: 'annotation', label: 'Annotation' },
+  { value: 'etl', label: 'Extract/Transform/Load data' },
+  { value: 'utilities', label: 'Utilities' },
+] as const;
 
+export type Category = typeof categories[number]['value'];
 const Index = () => {
   const [loaded, setLoaded] = useState(false);
   const [featuredProduct, setFeaturedProduct] = useState<Product | null>(null);
@@ -26,7 +36,7 @@ const Index = () => {
         <Hero />
         
         {/* Featured Product */}
-        <section className="py-16 px-4">
+        {/*<section className="py-16 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-10">
               <h2 className="heading-lg">Featured Software</h2>
@@ -45,10 +55,10 @@ const Index = () => {
               </motion.div>
             )}
           </div>
-        </section>
+        </section>*/}
         
         {/* Top Products */}
-        <section className="py-16 px-4 bg-secondary/30">
+        {/*<section className="py-16 px-4 bg-secondary/30">
           <div className="container mx-auto">
             <ProductGrid 
               products={topProducts} 
@@ -65,10 +75,10 @@ const Index = () => {
               </Button>
             </div>
           </div>
-        </section>
+        </section>*/}
         
         {/* Features Section */}
-        <section className="px-4">
+        {/*<section className="px-4">
           <div className="container mx-auto">
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -110,10 +120,10 @@ const Index = () => {
               ))}
             </div>
           </div>
-        </section>
+        </section>*/}
         
         {/* CTA Section */}
-        <section className="py-20 px-4 bg-gradient-to-r from-primary/10 to-accent/10">
+        {/*<section className="py-10 px-4 bg-gradient-to-r from-primary/10 to-accent/10">
           <div className="container mx-auto text-center">
             <h2 className="heading-lg mb-4">Ready to Share Your Software?</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -126,7 +136,7 @@ const Index = () => {
               </Link>
             </Button>
           </div>
-        </section>
+        </section>*/}
       </main>
       
       <Footer />
