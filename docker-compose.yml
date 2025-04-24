@@ -3,12 +3,10 @@ services:
     build: ./backend
     environment:
       - FLASK_ENV=production
-      - HOST=${HOST}
-      - APP_FOLDER=${APP_FOLDER}
-      - UPLOAD_FOLDER=${UPLOAD_FOLDER}
+      - API_HOST=${API_HOST}
     volumes:
-      - ${UPLOAD_FOLDER}:/app/static/uploads
-      - ${APP_FOLDER}:/app/db
+      - ${EXT_UPLOAD_FOLDER}:/app/static/uploads
+      - ${EXT_DB_FOLDER}:/app/db
     ports:
       - "5000:5000"  # Expose backend port
     networks:
