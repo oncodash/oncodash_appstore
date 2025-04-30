@@ -22,9 +22,9 @@ app.config['UPLOAD_FOLDER'] = '/app/static/uploads'
 DB_PATH = '/app/db/appstore.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-HOST = os.environ.get('API_HOST', 'https://oncodash-appstore.ltdk.helsinki.fi')
+HOST = os.environ.get('API_HOST', 'https://localhost:5000')
 
 UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):

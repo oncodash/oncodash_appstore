@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +14,8 @@ import toml from 'toml';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { categories, Category } from '@/pages/Index';
+import { useNavigate } from 'react-router-dom';
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 console.log("upload API URL:", API_URL);
@@ -72,9 +74,18 @@ const UploadForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, token } = useAuth();
   const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user || !token) {
+      navigate('/auth?tab=login', { state: { from: '/upload' } });
+    }
+  }, [user, token, navigate]);
 
   console.log('Auth state:', { user, token }); // Add this line for debugging
-
+  if (!user || !token) {
+    return null;
+  }
   // TODO: Add link field option instead of uploading file. Group software with same title (version can differ), same product can have multiple files
 
   const form = useForm<FormValues>({
@@ -277,7 +288,7 @@ const onSubmit = async (values: FormValues) => {
 
   return (
 
-    <div className="w-full max-w-3xl mx-auto mt-16 ">
+    <div className="bg-white w-full max-w-3xl mx-auto mt-16 ">
        <Navbar  />
 
       <Form {...form}>

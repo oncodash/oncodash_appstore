@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -22,6 +23,15 @@ const changePasswordSchema = z.object({
 type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 const MyAccount = () => {
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user || !token) {
+      navigate('/auth?tab=login', { state: { from: '/my-account' } });
+    }
+  }, [user, token, navigate]);
+
   const { register, handleSubmit, formState: { errors } } = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),
   });
@@ -30,26 +40,28 @@ const MyAccount = () => {
     queryKey: ['user'],
     queryFn: async () => {
       const response = await axios.get(`${API_URL}/user`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    }
+    },
+    enabled: !!token // Only run the query if the token exists
   });
-  
+
   const productsQuery = useQuery({
     queryKey: ['userProducts'],
     queryFn: async () => {
       const response = await axios.get(`${API_URL}/user/products`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    }
+    },
+    enabled: !!token // Only run the query if the token exists
   });
 
   const changePasswordMutation = useMutation({
     mutationFn: (data: ChangePasswordFormData) => 
       axios.post(`${API_URL}/user/change-password`, data, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${token}` }
       }),
     onSuccess: () => {
       alert('Password changed successfully');
@@ -63,10 +75,14 @@ const MyAccount = () => {
     changePasswordMutation.mutate(data);
   };
 
+  if (!user || !token) {
+    return null; // Don't render anything if not authenticated
+  }
+
   if (userQuery.isPending || productsQuery.isPending) return <div>Loading...</div>;
   if (userQuery.isError || productsQuery.isError) return <div>Error loading data</div>;
 
-  const user = userQuery.data;
+  const userData = userQuery.data;
   const products = productsQuery.data;
 
   return (
@@ -78,9 +94,9 @@ const MyAccount = () => {
       
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 className="text-xl font-semibold mb-2">User Information</h2>
-        <p><strong>Name:</strong> {user?.name}</p>
-        <p><strong>Email:</strong> {user?.email}</p>
-        <p><strong>Joined:</strong> {new Date(user?.created_at).toLocaleDateString()}</p>
+        <p><strong>Name:</strong> {userData?.name}</p>
+        <p><strong>Email:</strong> {userData?.email}</p>
+        <p><strong>Joined:</strong> {new Date(userData?.created_at).toLocaleDateString()}</p>
       </div>
 
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">

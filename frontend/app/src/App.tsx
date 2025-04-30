@@ -16,7 +16,9 @@ import { AuthProvider } from "./hooks/useAuth";
 import ProductDetail from './pages/ProductDetail';
 import MyAccount from './pages/MyAccount';
 import EditForm from "@/components/EditForm.tsx";
-
+import DeveloperQuickStart from './pages/DeveloperQuickStart';
+import ApiDocumentation from './pages/ApiDocumentation';
+import UserGetStarted from './pages/UserGetStarted';
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,10 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/developer-guide" element={<DeveloperQuickStart />} />
+            <Route path="/api-documentation" element={<ApiDocumentation />} />
+            <Route path="/api-docs" element={<ApiDocumentation />} />
+            <Route path="/get-started" element={<UserGetStarted />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
