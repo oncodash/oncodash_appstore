@@ -17,7 +17,7 @@ const Footer = () => {
             <p className="text-muted-foreground">
               The application store for discovering and sharing Oncodash software packages.
             </p>
-            <div className="flex space-x-4 pt-2">
+            {/*<div className="flex space-x-4 pt-2">
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
@@ -34,15 +34,15 @@ const Footer = () => {
                 <Linkedin className="h-5 w-5" />
                 <span className="sr-only">LinkedIn</span>
               </Button>
-            </div>
+            </div>*/}
           </div>
           
           <div>
-            <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
+            <h3 className="font-semibold text-lg mb-4">Useful Links</h3>
             <ul className="space-y-2">
-              <li>
+              {/*<li>
                 <Link to="/marketplace" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Marketplace
+                  Applications
                 </Link>
               </li>
               <li>
@@ -57,7 +57,22 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/upload" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Sell Software
+                  Share Software
+                </Link>
+              </li>*/}
+              <li>
+                <Link to="/get-started" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Get Started
+                </Link>
+              </li>
+              <li>
+                <Link to="/developer-guide" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Developer Guide
+                </Link>
+              </li>
+              <li>
+                <Link to="/api-docs" className="text-muted-foreground hover:text-foreground transition-colors">
+                  API reference
                 </Link>
               </li>
             </ul>
@@ -67,14 +82,15 @@ const Footer = () => {
             <h3 className="font-semibold text-lg mb-4">Information</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="https://www.deciderproject.eu/"
+                  target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
                   About Us
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="https://www.deciderproject.eu/contact" target="_blank" className="text-muted-foreground hover:text-foreground transition-colors">
                   Contact Us
-                </Link>
+                </a>
               </li>
               <li>
                 <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -89,7 +105,7 @@ const Footer = () => {
             </ul>
           </div>
           
-          <div>
+          {/*<div>
             <h3 className="font-semibold text-lg mb-4">Stay Updated</h3>
             <p className="text-muted-foreground mb-4">
               Subscribe to our newsletter for the latest updates and offers.
@@ -104,7 +120,7 @@ const Footer = () => {
                 Subscribe
               </Button>
             </div>
-          </div>
+          </div>*/}
         </div>
         
         <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
@@ -118,9 +134,9 @@ const Footer = () => {
             <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Terms
             </Link>
-            <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            {/*<Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Contact
-            </Link>
+            </Link>*/}
           </div>
         </div>
       </div>
